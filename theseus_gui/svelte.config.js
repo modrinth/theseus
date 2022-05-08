@@ -1,6 +1,7 @@
 import adapter from '@sveltejs/adapter-static';
 import path from "path";
 import { preprocess, plugins } from 'omorphia/config/svelte.config'
+import precompileIntl from "svelte-intl-precompile/sveltekit-plugin";
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
@@ -12,6 +13,7 @@ const config = {
         vite: {
             plugins: [
                 ...plugins,
+                precompileIntl('locales'),
             ],
             resolve: {
                 alias: {
@@ -21,9 +23,15 @@ const config = {
                     $lib: path.resolve('./src/lib'),
                     $stores: path.resolve('./src/stores'),
                     $styles: path.resolve('./src/styles'),
-                    $generated: path.resolve('./src/generated'),
+                    $generated: path.resolve('./generated'),
                 },
             },
+            server: {
+              fs: {
+                // Allow serving files from one level up to the project root
+                allow: ['..', './generated/*.json'],
+              }
+            }
         }
     }
 };

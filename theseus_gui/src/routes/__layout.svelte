@@ -1,3 +1,21 @@
+<script context="module" lang="ts">
+  import { init, waitLocale } from 'svelte-intl-precompile'
+  import { registerAll } from '$locales'
+
+  registerAll()
+
+  /** @type {import('@sveltejs/kit').Load} */
+  export async function load({fetch, session, stuff}) {
+    init({
+      fallbackLocale: 'en',
+      initialLocale: session.acceptedLanguage,
+    })
+    await waitLocale()
+
+    return {}
+  }
+</script>
+
 <script lang="ts">
     import '@fontsource/inter'
     import 'omorphia/styles.postcss'

@@ -1,5 +1,4 @@
 <script lang="ts">
-
 import Instance from "$components/Instance.svelte";
 import CardRow from "$components/CardRow.svelte";
 </script>

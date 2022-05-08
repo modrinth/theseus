@@ -1,12 +1,12 @@
 <script lang="ts">
-    import { SvelteComponent } from 'svelte'
     import { page } from "$app/stores";
 
     export let items: {
         label: string,
         /** Page href, without slash prefix */
         href: string,
-        icon: SvelteComponent
+        /** An icon, as a svelte component */
+        icon: any, // `SvelteComponentDev` has type errors
     }[];
 
     /** Path level in URL, zero-indexed */
@@ -20,7 +20,7 @@
 
 <div class="vertical-nav">
     {#each items as item (item.href)}
-        <a class="nav-item" href="/{item.href}" class:active={path[level] === item.href}>
+        <a class="nav-item" href="/{item.href}" class:active={path[level] === item.href} sveltekit:prefetch>
             <svelte:component this={item.icon} />
             {item.label}
         </a>

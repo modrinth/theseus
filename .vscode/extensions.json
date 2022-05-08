@@ -1,0 +1,12 @@
+{
+  "recommendations": [
+    "tauri-apps.tauri-vscode",
+    "vunguyentuan.vscode-css-variables",
+    "stylelint.vscode-stylelint",
+    "eamodio.gitlens",
+    "esbenp.prettier-vscode",
+    "pivaszbs.svelte-autoimport",
+    "svelte.svelte-vscode",
+    "ardenivanov.svelte-intellisense"
+  ]
+}

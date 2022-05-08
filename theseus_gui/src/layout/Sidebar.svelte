@@ -127,7 +127,7 @@
                 grid-gap: 8px;
 
                 :global(button) {
-                    width: 34px;
+                    width: 32px;
                 }
             }
         }

@@ -9,3 +9,6 @@ WixTools
 # TEMPORARY: ignore my test instance and metadata
 theseus_cli/launcher
 theseus_cli/foo
+.DS_Store
+.pnpm-debug.log
+generated/

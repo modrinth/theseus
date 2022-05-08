@@ -1,0 +1,56 @@
+{
+  "cssVariables.lookupFiles": [
+    "**/*.postcss",
+    "**/node_modules/omorphia/**/*.postcss"
+  ],
+  "cssVariables.blacklistFolders": [
+    "**/.git",
+    "**/.svn",
+    "**/.hg",
+    "**/CVS",
+    "**/.DS_Store",
+    "**/.git",
+    "**/bower_components",
+    "**/tmp",
+    "**/dist",
+    "**/tests"
+  ],
+  "gitlens.showWelcomeOnInstall": false,
+  "gitlens.showWhatsNewAfterUpgrades": false,
+  "gitlens.plusFeatures.enabled": false,
+  "gitlens.currentLine.enabled": false,
+  "gitlens.currentLine.pullRequests.enabled": false,
+  "gitlens.currentLine.scrollable": true,
+  "gitlens.codeLens.enabled": false,
+  "gitlens.hovers.enabled": false,
+  "CSSNavigation.activeCSSFileExtensions": [
+    "css",
+    "postcss"
+  ],
+  "CSSNavigation.activeHTMLFileExtensions": [
+    "html",
+    "svelte",
+    "js",
+    "ts"
+  ],
+  "CSSNavigation.excludeGlobPatterns": [
+    "**/bower_components/**",
+    "**/vendor/**",
+    "**/coverage/**"
+  ],
+  "CSSNavigation.alwaysIncludeGlobPatterns": [
+    "./theseus_gui/node_modules/omorphia/**/*.postcss"
+  ],
+  "html-css-class-completion.HTMLLanguages": [
+    "html",
+    "svelte"
+  ],
+  "html-css-class-completion.includeGlobPattern": "**/*.{postcss,svelte}",
+  "html-css-class-completion.CSSLanguages": [
+    "postcss",
+  ],
+  "svelte.enable-ts-plugin": true,
+  "svelte.ask-to-enable-ts-plugin": false,
+  "svelte.plugin.css.diagnostics.enable": false,
+  "svelte.plugin.svelte.diagnostics.enable": false,
+}

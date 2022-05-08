@@ -1,0 +1,130 @@
+{
+	"pages": {
+		"description": "Description",
+		"gallery": "Gallery",
+		"changelog": "Changelog",
+		"versions": "Versions",
+		"settings": "Settings",
+		"reports": "Reports",
+		"moderation": "Moderation",
+		"notifications": "Notifications",
+		"about": "About",
+		"following": "Following",
+		"all": "All"
+	},
+	"generic": {
+		"labels": {
+			"license": "License",
+			"project_id": "Project ID",
+			"project_status": "Project status"
+		},
+		"actions": {
+			"edit": "Edit",
+			"follow": "Follow",
+			"unfollow": "Unfollow",
+			"report": "Report",
+			"new_project": "New project",
+			"download": "Download",
+			"save": "Save",
+			"cancel": "Cancel",
+			"discard": "Discard changes"
+		},
+		"external": {
+			"github_profile": "GitHub profile",
+			"discord": "Discord",
+			"github": "GitHub",
+			"issues": "Issues",
+			"source": "Source",
+			"wiki": "Wiki",
+			"patreon": "Patreon",
+			"paypal": "PayPal",
+			"buy_me_a_coffee": "Buy Me a Coffee",
+			"github_sponsors": "GitHub Sponsors",
+			"donate": "Donate",
+			"kofi": "Ko-Fi"
+		},
+		"environments": {
+			"label": "Environment",
+			"server_side": "Server side",
+			"client_side": "Client side",
+			"values": {
+				"required": "Required",
+				"unsupported": "Unsupported",
+				"optional": "Optional",
+				"unknown": "Unknown"
+			}
+		},
+		"byline": "by <u>{author}</u>"
+	},
+	"project": {
+		"types": {
+			"mod": {
+				"singular": "Mod",
+				"plural": "Mods",
+				"search": "Search mods..."
+			},
+			"modpack": {
+				"singular": "Modpack",
+				"plural": "Modpacks",
+				"search": "Search modpacks..."
+			}
+		},
+		"sidebar_headings": {
+			"external_resources": "External resources",
+			"featured_versions": "Featured versions",
+			"project_members": "Project members",
+			"technical_information": "Technical information"
+		}
+	},
+	"status": {
+		"approved": "Approved",
+		"rejected": "Rejected",
+		"draft": "Draft",
+		"unlisted": "Unlisted",
+		"processing": "Under review",
+		"unknown": "Unknown"
+	},
+	"release_channels": {
+		"release": "Release",
+		"beta": "Beta",
+		"alpha": "Alpha"
+	},
+	"roles": {
+		"developer": "Developer",
+		"admin": "Admin",
+		"moderator": "Moderator"
+	},
+	"stats": {
+		"joined": "Joined {ago}",
+		"notified": "Notified {ago}",
+		"downloads": "{downloads, plural, one {<b>1</b> download} other {<b>#</b> downloads}}",
+		"followers_of_projects": "{followers, plural, one {<b>1</b> follower of projects} other {<b>#</b> followers of projects}}",
+		"followers": "{followers, plural, one {<b>1</b> follower} other {<b>#</b> followers}}",
+		"user_id": "User ID: {id}",
+		"created": "Created {ago}",
+		"updated": "Updated {ago}"
+	},
+	"tags": {
+		"technology": "Technology",
+		"adventure": "Adventure",
+		"magic": "Magic",
+		"utility": "Utility",
+		"decoration": "Decoration",
+		"library": "Library",
+		"cursed": "Cursed",
+		"worldgen": "World generation",
+		"storage": "Storage",
+		"food": "Food",
+		"equipment": "Equipment",
+		"miscellaneous": "Miscellaneous",
+		"optimization": "Optimization",
+		"fabric": "Fabric",
+		"quilt": "Quilt",
+		"forge": "Forge",
+		"server": "Server",
+		"client": "Client",
+		"good": "Good",
+		"trash": "Trash",
+		"misc": "Miscellaneous"
+	}
+}
