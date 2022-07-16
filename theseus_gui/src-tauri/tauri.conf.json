@@ -4,7 +4,7 @@
   },
   "build": {
     "distDir": "../build",
-    "devPath": "http://localhost:3000",
+    "devPath": "http://localhost:5173",
     "beforeDevCommand": "pnpm dev:web",
     "beforeBuildCommand": "pnpm run build:web"
   },
@@ -32,13 +32,11 @@
       "shortDescription": "",
       "longDescription": "",
       "deb": {
-        "depends": [],
-        "useBootstrapper": false
+        "depends": []
       },
       "macOS": {
         "frameworks": [],
         "minimumSystemVersion": "",
-        "useBootstrapper": false,
         "exceptionDomain": "",
         "signingIdentity": null,
         "providerShortName": null,
