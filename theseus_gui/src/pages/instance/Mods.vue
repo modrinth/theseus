@@ -25,6 +25,18 @@
         </Button>
       </div>
     </div>
+    <div class="inline-option">
+      <span>Show per page</span>
+      <DropdownSelect
+        name="Max results"
+        :value="maxResults"
+        :options="dropdownPageOptions"
+        :default-value="maxResults"
+        :model-value="maxResults"
+        class="limit-dropdown"
+        @change="updateMaxPagination"
+      />
+    </div>
     <Button
       v-if="isPackLinked"
       v-tooltip="'Modpack is up to date'"
@@ -60,7 +72,7 @@
   <Pagination
     v-if="projects.length > 0"
     :page="currentPage"
-    :count="Math.ceil(search.length / 20)"
+    :count="Math.ceil(search.length / (Number.isInteger(maxResults) ? maxResults : search.length))"
     class="pagination-before"
     :link-function="(page) => `?page=${page}`"
     @switch-page="switchPage"
@@ -198,7 +210,10 @@
         </section>
       </div>
       <div
-        v-for="mod in search.slice((currentPage - 1) * 20, currentPage * 20)"
+        v-for="mod in search.slice(
+          (currentPage - 1) * (Number.isInteger(maxResults) ? maxResults : search.length),
+          currentPage * (Number.isInteger(maxResults) ? maxResults : search.length)
+        )"
         :key="mod.file_name"
         class="table-row"
         @contextmenu.prevent.stop="(c) => handleRightClick(c, mod)"
@@ -379,6 +394,7 @@ import {
 } from 'omorphia'
 import { computed, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { usePagination } from '@/store/pagination'
 import {
   add_project_from_path,
   get,
@@ -609,6 +625,34 @@ const updateSort = (projects) => {
   }
 }
 
+const pagination = usePagination()
+
+// const paginationState = ref(pagination.paginationState)
+const maxResults = ref(pagination.maxResults)
+
+const dropdownPageOptions = computed(() => {
+  const baseOptions = [5, 10, 15, 20, 50, 100, 'All']
+  return baseOptions
+})
+
+// watch(search, (newSearch) => {
+//   if (newSearch.length < maxResults.value) {
+//     maxResults.value = newSearch.length
+//   } else {
+//     maxResults.value = 20
+//   }
+// })
+
+watch(maxResults, (newVal) => {
+  // Update the global state when maxResults changes
+
+  // if newVal is a string, set it to the length of the search
+
+  maxResults.value = newVal
+
+  pagination.setMaxResults(newVal)
+})
+
 const sortProjects = (filter) => {
   if (sortColumn.value === filter) {
     ascending.value = !ascending.value
@@ -835,6 +879,20 @@ const updateModpack = async () => {
   updatingModpack.value = false
 }
 
+const updateMaxPagination = async (event) => {
+  const newValue = event.option
+
+  maxResults.value = newValue
+
+  const max = Math.ceil(
+    search.value.length /
+      (Number.isInteger(maxResults.value) ? maxResults.value : search.value.length)
+  )
+  if (currentPage.value > max) {
+    currentPage.value = max
+  }
+}
+
 watch(selectAll, () => {
   for (const [key, value] of Array.from(selectionMap.value)) {
     if (value !== selectAll.value) {
@@ -941,6 +999,22 @@ onUnmounted(() => {
 
   .btn {
     height: 2.5rem;
+  }
+
+  .inline-option {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+    // width: 100%;
+
+    .sort-dropdown {
+      max-width: 12.25rem;
+    }
+
+    .limit-dropdown {
+      width: 5rem;
+    }
   }
 
   .dropdown-input {
