@@ -7,6 +7,7 @@ WixTools
 .direnv/
 .DS_Store
 .pnpm-debug.log
+package-lock.json
 
 minecraft
 config

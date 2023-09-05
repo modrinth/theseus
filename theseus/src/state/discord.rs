@@ -55,6 +55,7 @@ impl DiscordGuard {
     pub async fn set_activity(
         &self,
         msg: &str,
+        details: &str,
         reconnect_if_fail: bool,
     ) -> crate::Result<()> {
         // Attempt to connect if not connected. Do not continue if it fails, as the client.set_activity can panic if it never was connected
@@ -62,11 +63,19 @@ impl DiscordGuard {
             return Ok(());
         }
 
-        let activity = Activity::new().state(msg).assets(
+        let mut activity = Activity::new().state(msg).details(details).assets(
             Assets::new()
                 .large_image("modrinth_simple")
                 .large_text("Modrinth Logo"),
         );
+
+        if details == "" || details == &format!("") {
+            activity = Activity::new().state(msg).assets(
+                Assets::new()
+                    .large_image("modrinth_simple")
+                    .large_text("Modrinth Logo"),
+            );
+        }
 
         // Attempt to set the activity
         // If the existing connection fails, attempt to reconnect and try again
@@ -157,11 +166,13 @@ impl DiscordGuard {
         {
             self.set_activity(
                 &format!("Playing {}", existing_child),
+                &format!("as you :)"),
                 reconnect_if_fail,
             )
             .await?;
         } else {
-            self.set_activity("Idling...", reconnect_if_fail).await?;
+            self.set_activity("Idling...", "", reconnect_if_fail)
+                .await?;
         }
         Ok(())
     }

@@ -479,6 +479,76 @@ async function refreshDir() {
         />
       </div>
     </Card>
+    <Card>
+        <div class="label">
+          <h3>
+            <span class="label__title size-card-header">Hooks</span>
+          </h3>
+        </div>
+        <div class="adjacent-input">
+          <label for="pre-launch">
+            <span class="label__title">Pre launch</span>
+            <span class="label__description"> Ran before the instance is launched. </span>
+          </label>
+          <input
+            id="pre-launch"
+            v-model="settings.hooks.pre_launch"
+            autocomplete="off"
+            type="text"
+            placeholder="Enter pre-launch command..."
+          />
+        </div>
+        <div class="adjacent-input">
+          <label for="wrapper">
+            <span class="label__title">Wrapper</span>
+            <span class="label__description"> Wrapper command for launching Minecraft. </span>
+          </label>
+          <input
+            id="wrapper"
+            v-model="settings.hooks.wrapper"
+            autocomplete="off"
+            type="text"
+            placeholder="Enter wrapper command..."
+          />
+        </div>
+        <div class="adjacent-input">
+          <label for="post-exit">
+            <span class="label__title">Post exit</span>
+            <span class="label__description"> Ran after the game closes. </span>
+          </label>
+          <input
+            id="post-exit"
+            v-model="settings.hooks.post_exit"
+            autocomplete="off"
+            type="text"
+            placeholder="Enter post-exit command..."
+          />
+        </div>
+      </Card>
+      <Card>
+        <div class="label">
+          <h3>
+            <span class="label__title size-card-header">Discord Rich Presence</span>
+          </h3>
+        </div>
+        <div class="adjacent-input">
+          <label for="fullscreen">
+            <span class="label__title">Show Minecraft Name</span>
+            <span class="label__description">
+              Shows your Minecraft Username on your Discord Rich Presence
+            </span>
+          </label>
+          <Toggle
+            id="fullscreen"
+            :model-value="settings.show_username_rpc"
+            :checked="settings.show_username_rpc"
+            @update:model-value="(e) => {
+                settings.show_username_rpc = e
+              }
+              "
+          />
+        </div>
+      </Card>
   </div>
 </template>
 

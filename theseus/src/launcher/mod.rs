@@ -548,11 +548,28 @@ pub async fn launch_minecraft(
     }
 
     if !*state.offline.read().await {
-        // Add game played to discord rich presence
-        let _ = state
-            .discord_rpc
-            .set_activity(&format!("Playing {}", profile.metadata.name), true)
-            .await;
+        let settings = state.settings.read().await;
+
+        if settings.show_username_rpc {
+            let _ = state
+                .discord_rpc
+                .set_activity(
+                    &format!("Playing {}", profile.metadata.name),
+                    &format!("as {}", credentials.username.clone()),
+                    true,
+                )
+                .await;
+        } else {
+            // Add game played to discord rich presence
+            let _ = state
+                .discord_rpc
+                .set_activity(
+                    &format!("Playing {}", profile.metadata.name),
+                    &format!(""),
+                    true,
+                )
+                .await;
+        }
     }
 
     // Create Minecraft child by inserting it into the state
