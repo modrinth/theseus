@@ -49,7 +49,7 @@
     "macOSPrivateApi": true,
     "bundle": {
       "active": true,
-      "category": "Entertainment",
+      "category": "Game",
       "copyright": "",
       "deb": {
         "depends": []
