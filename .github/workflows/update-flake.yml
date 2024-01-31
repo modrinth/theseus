@@ -1,0 +1,29 @@
+name: Update flake.lock
+
+on:
+  schedule:
+    # run every saturday
+    - cron: "0 0 * * 6"
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: nixbuild/nix-quick-install-action@v26
+
+      - name: Update lockfile & make PR
+        uses: DeterminateSystems/update-flake-lock@v20
+        id: update
+        with:
+          commit-msg: "flake: update inputs"
+          pr-title: "flake: update inputs"
+          token: ${{ github.token }}
