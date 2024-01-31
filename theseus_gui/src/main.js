@@ -11,6 +11,31 @@ import loadCssMixin from './mixins/macCssFix.js'
 import { get } from '@/helpers/settings'
 import { invoke } from '@tauri-apps/api'
 import { isDev } from './helpers/utils.js'
+import { createPlugin } from '@vintl/vintl/plugin'
+import { localeDefinitions } from '@modrinth/theseus/locales/index.js'
+
+const vintl = createPlugin({
+  controllerOpts: {
+    locales: Object.keys(localeDefinitions).map((tag) => ({ tag })),
+    listen: {
+      async localeload(e) {
+        const { tag: locale } = e.locale
+
+        try {
+          const definition = localeDefinitions[locale]
+
+          if (definition != null) {
+            const { messages, resources } = await definition.importFunction()
+            e.addMessages(messages)
+            e.addResources(resources)
+          }
+        } catch (err) {
+          console.error(`Couldn't load Omorphia locale file for ${locale}`, err)
+        }
+      },
+    },
+  },
+})
 
 const pinia = createPinia()
 
@@ -18,6 +43,7 @@ let app = createApp(App)
 app.use(router)
 app.use(pinia)
 app.use(FloatingVue)
+app.use(vintl)
 app.mixin(loadCssMixin)
 
 const mountedApp = app.mount('#app')

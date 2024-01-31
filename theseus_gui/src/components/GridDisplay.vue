@@ -2,20 +2,20 @@
 import Instance from '@/components/ui/Instance.vue'
 import { computed, ref } from 'vue'
 import {
+  Button,
+  Card,
   ClipboardCopyIcon,
+  ConfirmModal,
+  DropdownSelect,
+  EyeIcon,
   FolderOpenIcon,
+  formatCategoryHeader,
   PlayIcon,
   PlusIcon,
-  TrashIcon,
-  StopCircleIcon,
-  EyeIcon,
-  Card,
-  DropdownSelect,
   SearchIcon,
+  StopCircleIcon,
+  TrashIcon,
   XIcon,
-  Button,
-  formatCategoryHeader,
-  ModalConfirm,
 } from 'omorphia'
 import ContextMenu from '@/components/ui/ContextMenu.vue'
 import dayjs from 'dayjs'
@@ -233,7 +233,7 @@ const filteredResults = computed(() => {
 })
 </script>
 <template>
-  <ModalConfirm
+  <ConfirmModal
     ref="confirmModal"
     title="Are you sure you want to delete this instance?"
     description="If you proceed, all data for your instance will be removed. You will not be able to recover it."
@@ -246,7 +246,7 @@ const filteredResults = computed(() => {
     <div class="iconified-input">
       <SearchIcon />
       <input v-model="search" type="text" placeholder="Search" class="search-input" />
-      <Button @click="() => (search = '')">
+      <Button class="r-btn" @click="() => (search = '')">
         <XIcon />
       </Button>
     </div>
@@ -304,14 +304,38 @@ const filteredResults = computed(() => {
     </section>
   </div>
   <ContextMenu ref="instanceOptions" @option-clicked="handleOptionsClick">
-    <template #play> <PlayIcon /> Play </template>
-    <template #stop> <StopCircleIcon /> Stop </template>
-    <template #add_content> <PlusIcon /> Add content </template>
-    <template #edit> <EyeIcon /> View instance </template>
-    <template #duplicate> <ClipboardCopyIcon /> Duplicate instance</template>
-    <template #delete> <TrashIcon /> Delete </template>
-    <template #open> <FolderOpenIcon /> Open folder </template>
-    <template #copy> <ClipboardCopyIcon /> Copy path </template>
+    <template #play>
+      <PlayIcon />
+      Play
+    </template>
+    <template #stop>
+      <StopCircleIcon />
+      Stop
+    </template>
+    <template #add_content>
+      <PlusIcon />
+      Add content
+    </template>
+    <template #edit>
+      <EyeIcon />
+      View instance
+    </template>
+    <template #duplicate>
+      <ClipboardCopyIcon />
+      Duplicate instance
+    </template>
+    <template #delete>
+      <TrashIcon />
+      Delete
+    </template>
+    <template #open>
+      <FolderOpenIcon />
+      Open folder
+    </template>
+    <template #copy>
+      <ClipboardCopyIcon />
+      Copy path
+    </template>
   </ContextMenu>
 </template>
 <style lang="scss" scoped>

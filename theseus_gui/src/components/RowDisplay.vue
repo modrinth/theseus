@@ -1,17 +1,17 @@
 <script setup>
 import {
+  ChevronRightIcon,
   ClipboardCopyIcon,
-  FolderOpenIcon,
-  PlayIcon,
-  PlusIcon,
-  TrashIcon,
+  ConfirmModal,
   DownloadIcon,
-  GlobeIcon,
-  StopCircleIcon,
   ExternalIcon,
   EyeIcon,
-  ChevronRightIcon,
-  ModalConfirm,
+  FolderOpenIcon,
+  GlobeIcon,
+  PlayIcon,
+  PlusIcon,
+  StopCircleIcon,
+  TrashIcon,
 } from 'omorphia'
 import Instance from '@/components/ui/Instance.vue'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
@@ -227,7 +227,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <ModalConfirm
+  <ConfirmModal
     ref="deleteConfirmModal"
     title="Are you sure you want to delete this instance?"
     description="If you proceed, all data for your instance will be removed. You will not be able to recover it."
@@ -265,17 +265,51 @@ onUnmounted(() => {
     </div>
   </div>
   <ContextMenu ref="instanceOptions" @option-clicked="handleOptionsClick">
-    <template #play> <PlayIcon /> Play </template>
-    <template #stop> <StopCircleIcon /> Stop </template>
-    <template #add_content> <PlusIcon /> Add content </template>
-    <template #edit> <EyeIcon /> View instance </template>
-    <template #delete> <TrashIcon /> Delete </template>
-    <template #open_folder> <FolderOpenIcon /> Open folder </template>
-    <template #duplicate> <ClipboardCopyIcon /> Duplicate instance</template>
-    <template #copy_path> <ClipboardCopyIcon /> Copy path </template>
-    <template #install> <DownloadIcon /> Install </template>
-    <template #open_link> <GlobeIcon /> Open in Modrinth <ExternalIcon /> </template>
-    <template #copy_link> <ClipboardCopyIcon /> Copy link </template>
+    <template #play>
+      <PlayIcon />
+      Play
+    </template>
+    <template #stop>
+      <StopCircleIcon />
+      Stop
+    </template>
+    <template #add_content>
+      <PlusIcon />
+      Add content
+    </template>
+    <template #edit>
+      <EyeIcon />
+      View instance
+    </template>
+    <template #delete>
+      <TrashIcon />
+      Delete
+    </template>
+    <template #open_folder>
+      <FolderOpenIcon />
+      Open folder
+    </template>
+    <template #duplicate>
+      <ClipboardCopyIcon />
+      Duplicate instance
+    </template>
+    <template #copy_path>
+      <ClipboardCopyIcon />
+      Copy path
+    </template>
+    <template #install>
+      <DownloadIcon />
+      Install
+    </template>
+    <template #open_link>
+      <GlobeIcon />
+      Open in Modrinth
+      <ExternalIcon />
+    </template>
+    <template #copy_link>
+      <ClipboardCopyIcon />
+      Copy link
+    </template>
   </ContextMenu>
   <InstallConfirmModal ref="confirmModal" />
   <ModInstallModal ref="modInstallModal" />

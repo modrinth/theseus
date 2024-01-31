@@ -20,7 +20,7 @@
           class="text-input"
           autocomplete="off"
         />
-        <Button @click="() => (searchFilter = '')">
+        <Button class="r-btn" @click="() => (searchFilter = '')">
           <XIcon />
         </Button>
       </div>
@@ -42,24 +42,33 @@
       <UpdatedIcon />
       Update all
     </Button>
-
-    <DropdownButton
-      v-if="!isPackLocked"
-      :options="['search', 'from_file']"
-      default-value="search"
-      name="add-content-dropdown"
-      color="primary"
-      @option-click="handleContentOptionClick"
-    >
-      <template #search>
+    <div v-if="!isPackLocked" class="joined-buttons">
+      <Button
+        color="primary"
+        name="add-content-dropdown"
+        @click="handleContentOptionClick({ option: 'search' })"
+      >
         <SearchIcon />
-        <span class="no-wrap"> Add content </span>
-      </template>
-      <template #from_file>
-        <FolderOpenIcon />
-        <span class="no-wrap"> Add from file </span>
-      </template>
-    </DropdownButton>
+        Add content
+      </Button>
+      <OverflowMenu
+        :options="[
+          {
+            id: 'from_file',
+            action: () => {
+              handleContentOptionClick({ option: 'from_file' })
+            },
+          },
+        ]"
+        class="btn btn-primary btn-dropdown-animation icon-only"
+      >
+        <DropdownIcon />
+        <template #from_file>
+          <FolderOpenIcon />
+          Add from file
+        </template>
+      </OverflowMenu>
+    </div>
   </Card>
   <Pagination
     v-if="projects.length > 0"
@@ -284,22 +293,33 @@
     <h3>No projects found</h3>
     <p class="empty-subtitle">Add a project to get started</p>
     <div class="empty-action">
-      <DropdownButton
-        :options="['search', 'from_file']"
-        default-value="search"
-        name="add-content-dropdown-from-empty"
-        color="primary"
-        @option-click="handleContentOptionClick"
-      >
-        <template #search>
+      <div class="joined-buttons">
+        <Button
+          color="primary"
+          name="add-content-dropdown-from-empty"
+          @click="handleContentOptionClick({ option: 'search' })"
+        >
           <SearchIcon />
-          <span class="no-wrap"> Add content </span>
-        </template>
-        <template #from_file>
-          <FolderOpenIcon />
-          <span class="no-wrap"> Add from file </span>
-        </template>
-      </DropdownButton>
+          Add content
+        </Button>
+        <OverflowMenu
+          :options="[
+            {
+              id: 'from_file',
+              action: () => {
+                handleContentOptionClick({ option: 'from_file' })
+              },
+            },
+          ]"
+          class="btn btn-primary btn-dropdown-animation icon-only"
+        >
+          <DropdownIcon />
+          <template #from_file>
+            <FolderOpenIcon />
+            Add from file
+          </template>
+        </OverflowMenu>
+      </div>
     </div>
   </div>
   <Pagination
@@ -321,7 +341,7 @@
         </p>
       </div>
       <div class="button-group push-right">
-        <Button @click="deleteWarning.hide()"> Cancel </Button>
+        <Button @click="deleteWarning.hide()"> Cancel</Button>
         <Button color="danger" @click="deleteSelected">
           <TrashIcon />
           Remove
@@ -344,7 +364,7 @@
         </p>
       </div>
       <div class="button-group push-right">
-        <Button @click="deleteDisabledWarning.hide()"> Cancel </Button>
+        <Button @click="deleteDisabledWarning.hide()"> Cancel</Button>
         <Button color="danger" @click="deleteDisabled">
           <TrashIcon />
           Remove
@@ -367,30 +387,30 @@
 </template>
 <script setup>
 import {
+  AnimatedLogo,
   Avatar,
   Button,
-  TrashIcon,
   Card,
-  CheckIcon,
-  SearchIcon,
-  UpdatedIcon,
-  AnimatedLogo,
-  FolderOpenIcon,
   Checkbox,
-  formatProjectType,
-  DropdownButton,
-  Modal,
-  XIcon,
-  ShareIcon,
+  CheckIcon,
+  CodeIcon,
   DropdownIcon,
-  GlobeIcon,
-  FileIcon,
+  DropdownSelect,
   EyeIcon,
   EyeOffIcon,
-  ShareModal,
-  CodeIcon,
+  FileIcon,
+  FolderOpenIcon,
+  formatProjectType,
+  GlobeIcon,
+  Modal,
+  OverflowMenu,
   Pagination,
-  DropdownSelect,
+  SearchIcon,
+  ShareIcon,
+  ShareModal,
+  TrashIcon,
+  UpdatedIcon,
+  XIcon,
 } from 'omorphia'
 import { computed, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
@@ -408,7 +428,7 @@ import { open } from '@tauri-apps/api/dialog'
 import { listen } from '@tauri-apps/api/event'
 import { convertFileSrc } from '@tauri-apps/api/tauri'
 import { highlightModInProfile } from '@/helpers/utils.js'
-import { MenuIcon, ToggleIcon, TextInputIcon, AddProjectImage, PackageIcon } from '@/assets/icons'
+import { AddProjectImage, MenuIcon, PackageIcon, TextInputIcon, ToggleIcon } from '@/assets/icons'
 import ExportModal from '@/components/ui/ExportModal.vue'
 import ModpackVersionModal from '@/components/ui/ModpackVersionModal.vue'
 
@@ -965,6 +985,10 @@ onUnmounted(() => {
     }
   }
 
+  :deep(.btn) {
+    height: 2.5rem !important;
+  }
+
   .btn {
     height: 2.5rem;
   }
@@ -1131,6 +1155,7 @@ onUnmounted(() => {
     }
   }
 }
+
 .empty-prompt {
   display: flex;
   flex-direction: column;

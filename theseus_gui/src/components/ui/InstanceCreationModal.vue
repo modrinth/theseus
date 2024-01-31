@@ -110,7 +110,7 @@
               placeholder="Path to launcher"
               @change="setPath"
             />
-            <Button @click="() => (selectedLauncherPath = '')">
+            <Button class="r-btn" @click="() => (selectedLauncherPath = '')">
               <XIcon />
             </Button>
           </div>

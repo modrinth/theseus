@@ -420,6 +420,8 @@ Button {
     color: var(--color-primary);
     box-shadow: none;
 
+    justify-content: left !important;
+
     &.router-link-exact-active {
       box-shadow: var(--shadow-inset-lg);
       background: var(--color-button-bg);

@@ -187,7 +187,7 @@ async function refreshDir() {
         <div class="iconified-input">
           <BoxIcon />
           <input id="appDir" v-model="settingsDir" type="text" class="input" />
-          <Button @click="findLauncherDir">
+          <Button class="r-btn" @click="findLauncherDir">
             <FolderSearchIcon />
           </Button>
         </div>

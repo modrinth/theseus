@@ -1,5 +1,5 @@
 <template>
-  <ModalConfirm
+  <ConfirmModal
     ref="modal_confirm"
     title="Are you sure you want to delete this instance?"
     description="If you proceed, all data for your instance will be removed. You will not be able to recover it."
@@ -396,7 +396,8 @@
         </span>
       </label>
       <Button id="unlock-profile" @click="$refs.modalConfirmUnlock.show()">
-        <LockIcon /> Unlock
+        <LockIcon />
+        Unlock
       </Button>
     </div>
 
@@ -410,7 +411,8 @@
         </span>
       </label>
       <Button id="unpair-profile" @click="$refs.modalConfirmUnpair.show()">
-        <XIcon /> Unpair
+        <XIcon />
+        Unpair
       </Button>
     </div>
 
@@ -441,7 +443,8 @@
         </span>
       </label>
       <Button id="repair-modpack" color="highlight" :disabled="offline" @click="repairModpack">
-        <DownloadIcon /> Reinstall
+        <DownloadIcon />
+        Reinstall
       </Button>
     </div>
   </Card>
@@ -463,7 +466,8 @@
         :disabled:="installing || inProgress || offline"
         @click="duplicateProfile"
       >
-        <ClipboardCopyIcon /> Duplicate
+        <ClipboardCopyIcon />
+        Duplicate
       </Button>
     </div>
     <div class="adjacent-input">
@@ -480,7 +484,8 @@
         :disabled="installing || inProgress || repairing || offline"
         @click="repairProfile(true)"
       >
-        <HammerIcon /> Repair
+        <HammerIcon />
+        Repair
       </Button>
     </div>
     <div class="adjacent-input">
@@ -497,7 +502,8 @@
         :disabled="removing"
         @click="$refs.modal_confirm.show()"
       >
-        <TrashIcon /> Delete
+        <TrashIcon />
+        Delete
       </Button>
     </div>
   </Card>
@@ -511,24 +517,24 @@
 
 <script setup>
 import {
+  Avatar,
+  Button,
   Card,
+  Checkbox,
+  Chips,
+  ClipboardCopyIcon,
+  ConfirmModal,
+  DownloadIcon,
+  DropdownSelect,
+  EditIcon,
+  HammerIcon,
+  LockIcon,
+  Modal,
+  SaveIcon,
   Slider,
   TrashIcon,
-  Checkbox,
   UploadIcon,
-  Avatar,
-  EditIcon,
-  Modal,
-  Chips,
-  DropdownSelect,
   XIcon,
-  SaveIcon,
-  LockIcon,
-  HammerIcon,
-  ModalConfirm,
-  DownloadIcon,
-  ClipboardCopyIcon,
-  Button,
   Toggle,
 } from 'omorphia'
 import { SwapIcon } from '@/assets/icons'
@@ -815,6 +821,7 @@ async function repairModpack() {
 }
 
 const removing = ref(false)
+
 async function removeProfile() {
   removing.value = true
   await remove(props.instance.path).catch(handleError)
@@ -916,6 +923,7 @@ const isChanged = computed(() => {
 watch(loader, () => (loaderVersionIndex.value = 0))
 
 const editing = ref(false)
+
 async function saveGvLoaderEdits() {
   editing.value = true
 

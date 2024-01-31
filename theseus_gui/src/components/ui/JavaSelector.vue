@@ -216,6 +216,10 @@ async function reinstallJava() {
   align-items: center;
   gap: 0.5rem;
   margin: 0;
+
+  button {
+    width: max-content !important;
+  }
 }
 
 .test-success {

@@ -705,7 +705,7 @@ onUnmounted(() => unlistenOffline())
             :placeholder="`Search ${projectType}s...`"
             @input="onSearchChange(1)"
           />
-          <Button @click="() => clearSearch()">
+          <Button class="r-btn" @click="() => clearSearch()">
             <XIcon />
           </Button>
         </div>
