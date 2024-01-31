@@ -148,7 +148,13 @@ if (route.query.ai) {
   hideAlreadyInstalled.value = route.query.ai === 'true'
 }
 
+let currentSearch = 0;
+let latestFinishedSearch = 0;
+
 async function refreshSearch() {
+  currentSearch += 1;
+  const thisSearch = currentSearch;
+
   const base = 'https://api.modrinth.com/v2/'
 
   const params = [`limit=${maxResults.value}`, `index=${sortType.value.name}`]
@@ -252,6 +258,12 @@ async function refreshSearch() {
   let val = `${base}${url}`
 
   let rawResults = await useFetch(val, 'search results', offline.value)
+
+  if (thisSearch < latestFinishedSearch) {
+    return
+  }
+  latestFinishedSearch = thisSearch
+
   if (!rawResults) {
     rawResults = {
       hits: [],
