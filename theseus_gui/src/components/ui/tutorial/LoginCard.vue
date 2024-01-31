@@ -119,7 +119,7 @@ const clipboardWrite = async (a) => {
         <div class="iconified-input">
           <LogInIcon />
           <input type="text" :value="loginUrl" readonly />
-          <Button v-tooltip="'Open link'" icon-only color="raised" @click="openUrl">
+          <Button v-tooltip="'Open link'" icon-only color="raised" class="r-btn" @click="openUrl">
             <GlobeIcon />
           </Button>
         </div>

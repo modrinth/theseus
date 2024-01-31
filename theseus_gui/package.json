@@ -14,11 +14,12 @@
   },
   "dependencies": {
     "@tauri-apps/api": "^1.3.0",
+    "@vintl/vintl": "^4.4.1",
     "dayjs": "^1.11.7",
     "floating-vue": "^2.0.0-beta.20",
     "mixpanel-browser": "^2.47.0",
     "ofetch": "^1.0.1",
-    "omorphia": "^0.4.38",
+    "omorphia": "^0.7.3",
     "pinia": "^2.1.3",
     "qrcode.vue": "^3.4.0",
     "tauri-plugin-window-state-api": "github:tauri-apps/tauri-plugin-window-state#v1",

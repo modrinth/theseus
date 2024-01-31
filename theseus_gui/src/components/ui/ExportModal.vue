@@ -112,7 +112,7 @@ const exportPack = async () => {
         <div class="iconified-input">
           <PackageIcon />
           <input v-model="nameInput" type="text" placeholder="Modpack name" class="input" />
-          <Button @click="nameInput = ''">
+          <Button class="r-btn" @click="nameInput = ''">
             <XIcon />
           </Button>
         </div>
@@ -122,7 +122,7 @@ const exportPack = async () => {
         <div class="iconified-input">
           <VersionIcon />
           <input v-model="versionInput" type="text" placeholder="1.0.0" class="input" />
-          <Button @click="versionInput = ''">
+          <Button class="r-btn" @click="versionInput = ''">
             <XIcon />
           </Button>
         </div>

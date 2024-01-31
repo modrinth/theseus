@@ -1,5 +1,5 @@
 <script setup>
-import { Button, Modal, CheckIcon, Badge } from 'omorphia'
+import { Button, Modal, CheckIcon, Badge, Card } from 'omorphia'
 import { computed, ref } from 'vue'
 import { useTheming } from '@/store/theme'
 import { update_managed_modrinth_version } from '@/helpers/profile'

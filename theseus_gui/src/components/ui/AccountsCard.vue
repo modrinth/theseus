@@ -83,6 +83,7 @@
             v-tooltip="'Open link'"
             icon-only
             color="raised"
+            class="r-btn"
             @click="() => clipboardWrite(loginUrl)"
           >
             <GlobeIcon />
