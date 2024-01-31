@@ -578,7 +578,7 @@ pub async fn export_mrpack(
     included_export_candidates: Vec<String>, // which folders/files to include in the export
     version_id: Option<String>,
     description: Option<String>,
-    _name: Option<String>,
+    name: Option<String>,
 ) -> crate::Result<()> {
     let state = State::get().await?;
     let io_semaphore = state.io_semaphore.0.read().await;
@@ -613,7 +613,7 @@ pub async fn export_mrpack(
     // Create mrpack json configuration file
     let version_id = version_id.unwrap_or("1.0.0".to_string());
     let mut packfile =
-        create_mrpack_json(&profile, version_id, description).await?;
+        create_mrpack_json(&profile, version_id, description, name).await?;
     let included_candidates_set =
         HashSet::<_>::from_iter(included_export_candidates.iter());
     packfile.files.retain(|f| {
@@ -923,6 +923,7 @@ pub async fn create_mrpack_json(
     profile: &Profile,
     version_id: String,
     description: Option<String>,
+    name: Option<String>,
 ) -> crate::Result<PackFormat> {
     // Add loader version to dependencies
     let mut dependencies = HashMap::new();
@@ -1020,11 +1021,13 @@ pub async fn create_mrpack_json(
         .collect();
     let files = files?;
 
+    let name = name.unwrap_or(profile.metadata.name.clone());
+
     Ok(PackFormat {
         game: "minecraft".to_string(),
         format_version: 1,
         version_id,
-        name: profile.metadata.name.clone(),
+        name,
         summary: description,
         files,
         dependencies,
