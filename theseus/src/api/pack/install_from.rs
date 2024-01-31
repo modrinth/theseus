@@ -159,7 +159,7 @@ pub fn get_profile_from_pack(
         } => CreatePackProfile {
             name: title,
             icon_url,
-            linked_data: Some(LinkedData {
+            linked_data: Some(LinkedData::ModrinthModpack {
                 project_id: Some(project_id),
                 version_id: Some(version_id),
                 locked: Some(true),
@@ -391,21 +391,30 @@ pub async fn set_profile_information(
         let project_id = description.project_id.clone();
         let version_id = description.version_id.clone();
 
-        prof.metadata.linked_data = if project_id.is_some()
-            && version_id.is_some()
-        {
-            Some(LinkedData {
-                project_id,
-                version_id,
-                locked: if !ignore_lock {
-                    Some(true)
-                } else {
-                    prof.metadata.linked_data.as_ref().and_then(|x| x.locked)
-                },
-            })
-        } else {
-            None
-        };
+        prof.metadata.linked_data =
+            if project_id.is_some() && version_id.is_some() {
+                Some(LinkedData::ModrinthModpack {
+                    project_id,
+                    version_id,
+                    locked: if !ignore_lock {
+                        Some(true)
+                    } else {
+                        prof.metadata.linked_data.as_ref().and_then(|x| {
+                            if let LinkedData::ModrinthModpack {
+                                locked: Some(locked),
+                                ..
+                            } = x
+                            {
+                                Some(*locked)
+                            } else {
+                                None
+                            }
+                        })
+                    },
+                })
+            } else {
+                None
+            };
 
         prof.metadata.icon = description.icon.clone();
         prof.metadata.game_version = game_version.clone();

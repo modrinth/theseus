@@ -359,7 +359,7 @@
   />
   <ExportModal v-if="projects.length > 0" ref="exportModal" :instance="instance" />
   <ModpackVersionModal
-    v-if="instance.metadata.linked_data"
+    v-if="instance.metadata.linked_data?.modrinth_modpack"
     ref="modpackVersionModal"
     :instance="instance"
     :versions="props.versions"
@@ -443,11 +443,18 @@ const projects = ref([])
 const selectionMap = ref(new Map())
 const showingOptions = ref(false)
 const isPackLocked = computed(() => {
-  return props.instance.metadata.linked_data && props.instance.metadata.linked_data.locked
+  if (props.instance.metadata.linked_data?.shared_profile) {
+    return !props.instance.metadata.linked_data.shared_profile.is_owner
+  }
+  return props.instance.metadata.linked_data?.modrinth_modpack?.locked
 })
 const canUpdatePack = computed(() => {
   if (!props.instance.metadata.linked_data) return false
-  return props.instance.metadata.linked_data.version_id !== props.instance.modrinth_update_version
+  let linked_data = props.instance.metadata.linked_data
+  if (linked_data.modrinth_modpack) {
+    return linked_data.modrinth_modpack.version_id !== props.instance.sync_update_version
+  }
+  return false
 })
 const exportModal = ref(null)
 

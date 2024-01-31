@@ -358,7 +358,7 @@
       />
     </div>
   </Card>
-  <Card v-if="instance.metadata.linked_data">
+  <Card v-if="instance.metadata.linked_data?.modrinth_modpack">
     <div class="label">
       <h3>
         <span class="label__title size-card-header">Modpack</span>
@@ -413,8 +413,10 @@
         <XIcon /> Unpair
       </Button>
     </div>
-
-    <div v-if="props.instance.metadata.linked_data.project_id" class="adjacent-input">
+    <div
+      v-if="props.instance.metadata.linked_data?.modrinth_modpack?.project_id"
+      class="adjacent-input"
+    >
       <label for="change-modpack-version">
         <span class="label__title">Change modpack version</span>
         <span class="label__description">
@@ -444,6 +446,96 @@
         <DownloadIcon /> Reinstall
       </Button>
     </div>
+  </Card>
+  <Card v-if="installedSharedProfileData">
+    <div class="label">
+      <h3>
+        <span class="label__title size-card-header">Shared profile management</span>
+      </h3>
+    </div>
+    <div v-if="installedSharedProfileData.is_owned" class="adjacent-input">
+      <label for="share-links">
+        <span class="label__title">Generate share link</span>
+        <span class="label__description">
+          Creates a share link to share this modpack with others. This allows them to install your
+          instance, as well as stay up to date with any changes you make.
+        </span>
+      </label>
+      <Button id="share-links" @click="generateShareLink"> <GlobeIcon /> Share </Button>
+    </div>
+    <div v-if="shareLink" class="adjacent-input">
+      Generated link: <code>{{ shareLink }}</code>
+    </div>
+    <div v-if="installedSharedProfileData.is_owned" class="table">
+      <div class="table-row table-head">
+        <div class="table-cell table-text name-cell actions-cell">
+          <Button class="transparent"> Name </Button>
+        </div>
+      </div>
+      <div v-for="user in installedSharedProfileData.users" :key="user" class="table-row">
+        <div class="table-cell table-text name-cell">
+          <div class="user-content">
+            <span v-tooltip="`${user}`" class="title">{{ user }}</span>
+          </div>
+        </div>
+        <div class="table-cell table-text manage">
+          <div v-tooltip="'Remove user'">
+            <Button
+              icon-only
+              @click="removeSharedPackUser(user)"
+              :disabled="user === installedSharedProfileData.owner_id"
+            >
+              <TrashIcon />
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div v-if="installedSharedProfileData.is_owned" class="adjacent-input">
+      <label for="share-sync">
+        <span class="label__title">Sync shared profile</span>
+        <span class="label__description" v-if="props.instance.sync_update_version?.is_synced">
+          You are up to date with the shared profile.
+        </span>
+        <span class="label__description" v-else>
+          You have changes that have not been synced to the shared profile. Click the button to
+          upload your changes.
+        </span>
+      </label>
+      <Button
+        id="share-sync-sync"
+        @click="outboundSyncSharedProfile"
+        :disabled="props.instance.sync_update_version?.is_synced"
+      >
+        <GlobeIcon /> Sync
+      </Button>
+      <Button
+        id="share-sync-revert"
+        @click="inboundSyncSharedProfile"
+        :disabled="props.instance.sync_update_version?.is_synced"
+      >
+        <GlobeIcon /> Revert
+      </Button>
+    </div>
+    <div v-else class="adjacent-input">
+      <label for="share-sync">
+        <span class="label__title">Sync shared profile</span>
+        <span class="label__description" v-if="props.instance.sync_update_version?.is_synced">
+          You are up to date with the shared profile.
+        </span>
+        <span class="label__description" v-else>
+          You are not up to date with the shared profile. Click the button to update your instance.
+        </span>
+      </label>
+      <Button
+        id="share-sync-sync"
+        @click="inboundSyncSharedProfile"
+        :disabled="props.instance.sync_update_version?.is_synced"
+      >
+        <GlobeIcon /> Sync
+      </Button>
+    </div>
+    {{ props.instance.sync_update_version }}
   </Card>
   <Card>
     <div class="label">
@@ -502,7 +594,7 @@
     </div>
   </Card>
   <ModpackVersionModal
-    v-if="instance.metadata.linked_data"
+    v-if="instance.metadata.linked_data?.modrinth_modpack"
     ref="modpackVersionModal"
     :instance="instance"
     :versions="props.versions"
@@ -527,6 +619,7 @@ import {
   HammerIcon,
   ModalConfirm,
   DownloadIcon,
+  GlobeIcon,
   ClipboardCopyIcon,
   Button,
   Toggle,
@@ -545,6 +638,13 @@ import {
   remove,
   update_repair_modrinth,
 } from '@/helpers/profile.js'
+import {
+  get_all,
+  outbound_sync,
+  inbound_sync,
+  share_generate,
+  remove_users,
+} from '@/helpers/shared_profiles.js'
 import { computed, readonly, ref, shallowRef, watch } from 'vue'
 import { get_max_memory } from '@/helpers/jre.js'
 import { get } from '@/helpers/settings.js'
@@ -659,10 +759,20 @@ const unlinkModpack = ref(false)
 
 const inProgress = ref(false)
 const installing = computed(() => props.instance.install_stage !== 'installed')
-const installedVersion = computed(() => props.instance?.metadata?.linked_data?.version_id)
+const installedVersion = computed(
+  () => props.instance?.metadata?.linked_data?.modrinth_modpack?.version_id
+)
 const installedVersionData = computed(() => {
   if (!installedVersion.value) return null
   return props.versions.find((version) => version.id === installedVersion.value)
+})
+
+const sharedProfiles = await get_all()
+const installedSharedProfileData = computed(() => {
+  if (!props.instance.metadata.linked_data?.shared_profile) return null
+  return sharedProfiles.find(
+    (profile) => profile.id === props.instance.metadata.linked_data?.shared_profile?.profile_id
+  )
 })
 
 watch(
@@ -794,13 +904,13 @@ async function unpairProfile() {
 
 async function unlockProfile() {
   const editProfile = props.instance
-  editProfile.metadata.linked_data.locked = false
+  editProfile.metadata.linked_data.modrinth_modpack.locked = false
   await edit(props.instance.path, editProfile)
   modalConfirmUnlock.value.hide()
 }
 
 const isPackLocked = computed(() => {
-  return props.instance.metadata.linked_data && props.instance.metadata.linked_data.locked
+  return props.instance.metadata.linked_data?.modrinth_modpack.locked
 })
 
 async function repairModpack() {
@@ -932,6 +1042,23 @@ async function saveGvLoaderEdits() {
   editing.value = false
   changeVersionsModal.value.hide()
 }
+
+async function outboundSyncSharedProfile() {
+  await outbound_sync(props.instance.path).catch(handleError)
+}
+
+async function inboundSyncSharedProfile() {
+  await inbound_sync(props.instance.path).catch(handleError)
+}
+
+const shareLink = ref(null)
+async function generateShareLink() {
+  shareLink.value = await share_generate(props.instance.path).catch(handleError)
+}
+
+async function removeSharedPackUser(user) {
+  await remove_users(props.instance.path, [user]).catch(handleError)
+}
 </script>
 
 <style scoped lang="scss">
@@ -1010,6 +1137,31 @@ async function saveGvLoaderEdits() {
   .button-group {
     margin-left: auto;
     margin-top: 1.5rem;
+  }
+}
+.table {
+  margin-block-start: 0;
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--color-bg);
+}
+
+.table-row {
+  grid-template-columns: 7fr 1fr;
+}
+
+.table-cell {
+  align-items: center;
+}
+
+.user-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+
+  .title {
+    color: var(--color-contrast);
+    font-weight: bolder;
+    margin-left: 1rem;
   }
 }
 </style>

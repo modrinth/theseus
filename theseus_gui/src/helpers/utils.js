@@ -68,7 +68,7 @@ export const installVersionDependencies = async (profile, version) => {
       )
         continue
       const depVersions = await useFetch(
-        `https://api.modrinth.com/v2/project/${dep.project_id}/version`,
+        `https://staging-api.modrinth.com/v2/project/${dep.project_id}/version`,
         'dependency versions'
       )
       const latest = depVersions.find(

@@ -314,10 +314,13 @@ async function fetchProjectData() {
     categories.value,
     instance.value,
   ] = await Promise.all([
-    useFetch(`https://api.modrinth.com/v2/project/${route.params.id}`, 'project'),
-    useFetch(`https://api.modrinth.com/v2/project/${route.params.id}/version`, 'project'),
-    useFetch(`https://api.modrinth.com/v2/project/${route.params.id}/members`, 'project'),
-    useFetch(`https://api.modrinth.com/v2/project/${route.params.id}/dependencies`, 'project'),
+    useFetch(`https://staging-api.modrinth.com/v2/project/${route.params.id}`, 'project'),
+    useFetch(`https://staging-api.modrinth.com/v2/project/${route.params.id}/version`, 'project'),
+    useFetch(`https://staging-api.modrinth.com/v2/project/${route.params.id}/members`, 'project'),
+    useFetch(
+      `https://staging-api.modrinth.com/v2/project/${route.params.id}/dependencies`,
+      'project'
+    ),
     get_categories().catch(handleError),
     route.query.i ? getInstance(route.query.i, false).catch(handleError) : Promise.resolve(),
   ])
@@ -391,7 +394,7 @@ async function install(version) {
       packs.length === 0 ||
       !packs
         .map((value) => value.metadata)
-        .find((pack) => pack.linked_data?.project_id === data.value.id)
+        .find((pack) => pack.linked_data?.modrinth_modpack?.project_id === data.value.id)
     ) {
       await packInstall(
         data.value.id,

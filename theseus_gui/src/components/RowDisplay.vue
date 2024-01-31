@@ -170,7 +170,7 @@ const handleOptionsClick = async (args) => {
       break
     case 'install': {
       const versions = await useFetch(
-        `https://api.modrinth.com/v2/project/${args.item.project_id}/version`,
+        `https://staging-api.modrinth.com/v2/project/${args.item.project_id}/version`,
         'project versions'
       )
 

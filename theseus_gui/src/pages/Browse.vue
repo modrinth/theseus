@@ -149,7 +149,7 @@ if (route.query.ai) {
 }
 
 async function refreshSearch() {
-  const base = 'https://api.modrinth.com/v2/'
+  const base = 'https://staging-api.modrinth.com/v2/'
 
   const params = [`limit=${maxResults.value}`, `index=${sortType.value.name}`]
   if (query.value.length > 0) {

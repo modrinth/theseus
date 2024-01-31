@@ -20,7 +20,8 @@ pub fn init<R: tauri::Runtime>() -> tauri::plugin::TauriPlugin<R> {
             get_opening_command,
             await_sync,
             is_offline,
-            refresh_offline
+            refresh_offline,
+            test_command,
         ])
         .build()
 }
@@ -157,6 +158,11 @@ pub async fn get_opening_command() -> Result<Option<CommandPayload>> {
         return Ok(Some(handler::parse_command(&cmd).await?));
     }
     Ok(None)
+}
+
+#[tauri::command]
+pub async fn test_command(command: String) -> Result<()> {
+    handle_command(command).await
 }
 
 // helper function called when redirected by a weblink (ie: modrith://do-something) or when redirected by a .mrpack file (in which case its a filepath)

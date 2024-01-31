@@ -40,12 +40,14 @@ import { TauriEvent } from '@tauri-apps/api/event'
 import { await_sync, check_safe_loading_bars_complete } from './helpers/state'
 import { confirm } from '@tauri-apps/api/dialog'
 import URLConfirmModal from '@/components/ui/URLConfirmModal.vue'
+import AcceptSharedProfileModal from '@/components/ui/AcceptSharedProfileModal.vue'
 import StickyTitleBar from '@/components/ui/tutorial/StickyTitleBar.vue'
 import OnboardingScreen from '@/components/ui/tutorial/OnboardingScreen.vue'
 import { install_from_file } from './helpers/pack'
 
 const themeStore = useTheming()
 const urlModal = ref(null)
+const sharedProfileConfirmModal = ref(null)
 const isLoading = ref(true)
 
 const videoPlaying = ref(false)
@@ -237,6 +239,9 @@ command_listener(async (e) => {
         source: 'CreationModalFileDrop',
       })
     }
+  } else if (e.event === 'OpenSharedProfile') {
+    // Install a shared profile
+    sharedProfileConfirmModal.value.show(e)
   } else {
     // Other commands are URL-based (deep linking)
     urlModal.value.show(e)
@@ -388,6 +393,7 @@ command_listener(async (e) => {
     </div>
   </div>
   <URLConfirmModal ref="urlModal" />
+  <AcceptSharedProfileModal ref="sharedProfileConfirmModal" />
   <Notifications ref="notificationsWrapper" />
 </template>
 

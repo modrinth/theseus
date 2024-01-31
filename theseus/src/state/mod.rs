@@ -247,13 +247,16 @@ impl State {
         tokio::task::spawn(async {
             if let Ok(state) = crate::State::get().await {
                 if !*state.offline.read().await {
+                    // Resolve update_creds first, as it might affect calls made by other updates
+                    let _ = CredentialsStore::update_creds().await;
+
                     let res1 = Profiles::update_modrinth_versions();
                     let res2 = Tags::update();
                     let res3 = Metadata::update();
                     let res4 = Profiles::update_projects();
                     let res5 = Settings::update_java();
-                    let res6 = CredentialsStore::update_creds();
-                    let res7 = Settings::update_default_user();
+                    let res6 = Settings::update_default_user();
+                    let res7 = Profiles::update_shared_projects();
 
                     let _ = join!(res1, res2, res3, res4, res5, res6, res7);
                 }

@@ -28,7 +28,9 @@ const filteredVersions = computed(() => {
 })
 
 const modpackVersionModal = ref(null)
-const installedVersion = computed(() => props.instance?.metadata?.linked_data?.version_id)
+const installedVersion = computed(
+  () => props.instance?.metadata?.linked_data?.modrinth_modpack?.version_id
+)
 const installing = computed(() => props.instance.install_stage !== 'installed')
 const inProgress = ref(false)
 
@@ -49,7 +51,7 @@ const switchVersion = async (versionId) => {
     :noblur="!themeStore.advancedRendering"
   >
     <div class="modal-body">
-      <Card v-if="instance.metadata.linked_data" class="mod-card">
+      <Card v-if="instance.metadata.linked_data?.modrinth_modpack" class="mod-card">
         <div class="table">
           <div class="table-row with-columns table-head">
             <div class="table-cell table-text download-cell" />

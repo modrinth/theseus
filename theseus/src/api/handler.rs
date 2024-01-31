@@ -14,6 +14,9 @@ use crate::{
 /// (Does not include modrinth://)
 pub async fn handle_url(sublink: &str) -> crate::Result<CommandPayload> {
     Ok(match sublink.split_once('/') {
+        Some(("shared_profile", link)) => CommandPayload::OpenSharedProfile {
+            link: link.to_string(),
+        },
         // /mod/{id}   -    Installs a mod of mod id
         Some(("mod", id)) => CommandPayload::InstallMod { id: id.to_string() },
         // /version/{id}   -    Installs a specific version of id

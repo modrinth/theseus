@@ -31,8 +31,10 @@ const getInstances = async () => {
 
   let filters = []
   for (const instance of recentInstances.value) {
-    if (instance.metadata.linked_data && instance.metadata.linked_data.project_id) {
-      filters.push(`NOT"project_id"="${instance.metadata.linked_data.project_id}"`)
+    if (instance.metadata.linked_data?.modrinth_modpack?.project_id) {
+      filters.push(
+        `NOT"project_id"="${instance.metadata.linked_data?.modrinth_modpack?.project_id}"`
+      )
     }
   }
   filter.value = filters.join(' AND ')
@@ -40,7 +42,7 @@ const getInstances = async () => {
 
 const getFeaturedModpacks = async () => {
   const response = await useFetch(
-    `https://api.modrinth.com/v2/search?facets=[["project_type:modpack"]]&limit=10&index=follows&filters=${filter.value}`,
+    `https://staging-api.modrinth.com/v2/search?facets=[["project_type:modpack"]]&limit=10&index=follows&filters=${filter.value}`,
     'featured modpacks',
     offline.value
   )
@@ -52,7 +54,7 @@ const getFeaturedModpacks = async () => {
 }
 const getFeaturedMods = async () => {
   const response = await useFetch(
-    'https://api.modrinth.com/v2/search?facets=[["project_type:mod"]]&limit=10&index=follows',
+    'https://staging-api.modrinth.com/v2/search?facets=[["project_type:mod"]]&limit=10&index=follows',
     'featured mods',
     offline.value
   )

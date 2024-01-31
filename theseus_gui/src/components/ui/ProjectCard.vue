@@ -73,7 +73,7 @@ const install = async (e) => {
   e?.stopPropagation()
   installing.value = true
   const versions = await useFetch(
-    `https://api.modrinth.com/v2/project/${props.project.project_id}/version`,
+    `https://staging-api.modrinth.com/v2/project/${props.project.project_id}/version`,
     'project versions'
   )
 
@@ -84,7 +84,7 @@ const install = async (e) => {
       packs.length === 0 ||
       !packs
         .map((value) => value.metadata)
-        .find((pack) => pack.linked_data?.project_id === props.project.project_id)
+        .find((pack) => pack.linked_data?.modrinth_modpack?.project_id === props.project.project_id)
     ) {
       installing.value = true
       await pack_install(

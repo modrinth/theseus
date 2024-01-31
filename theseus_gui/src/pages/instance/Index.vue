@@ -209,9 +209,9 @@ const checkProcess = async () => {
 
 // Get information on associated modrinth versions, if any
 const modrinthVersions = ref([])
-if (!(await isOffline()) && instance.value.metadata.linked_data?.project_id) {
+if (!(await isOffline()) && instance.value.metadata.linked_data?.modrinth_modpack?.project_id) {
   modrinthVersions.value = await useFetch(
-    `https://api.modrinth.com/v2/project/${instance.value.metadata.linked_data.project_id}/version`,
+    `https://staging-api.modrinth.com/v2/project/${instance.value.metadata.linked_data?.modrinth_modpack?.project_id}/version`,
     'project'
   )
 }

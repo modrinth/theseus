@@ -29,10 +29,15 @@ const raw_invoke = async (plugin, fn, args) => {
     return await invoke('plugin:' + plugin + '|' + fn, args)
   }
 }
+const test_command = async (command) => {
+  return await raw_invoke('utils', 'test_command', { command })
+}
+
 isDev()
   .then((dev) => {
     if (dev) {
       window.raw_invoke = raw_invoke
+      window.test_command = test_command
     }
   })
   .catch((err) => {

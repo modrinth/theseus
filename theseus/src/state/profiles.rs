@@ -4,13 +4,14 @@ use crate::data::DirectoryInfo;
 use crate::event::emit::{emit_profile, emit_warning};
 use crate::event::ProfilePayloadType;
 use crate::prelude::JavaVersion;
+use crate::shared_profile::SharedModpackFileUpdate;
 use crate::state::projects::Project;
 use crate::state::{ModrinthVersion, ProjectMetadata, ProjectType};
 use crate::util::fetch::{
     fetch, fetch_json, write, write_cached_icon, IoSemaphore,
 };
 use crate::util::io::{self, IOError};
-use crate::State;
+use crate::{shared_profile, State};
 use chrono::{DateTime, Utc};
 use daedalus::get_hash;
 use daedalus::modded::LoaderVersion;
@@ -164,7 +165,7 @@ impl ProjectPathId {
 
     pub async fn get_full_path(
         &self,
-        profile: ProfilePathId,
+        profile: &ProfilePathId,
     ) -> crate::Result<PathBuf> {
         let profile_dir = profile.get_full_path().await?;
         Ok(profile_dir.join(&self.0))
@@ -209,7 +210,14 @@ pub struct Profile {
     pub hooks: Option<Hooks>,
     pub projects: HashMap<ProjectPathId, Project>,
     #[serde(default)]
-    pub modrinth_update_version: Option<String>,
+    pub sync_update_version: Option<ProfileUpdateData>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(untagged)]
+pub enum ProfileUpdateData {
+    ModrinthModpack(String),
+    SharedProfile(SharedModpackFileUpdate),
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -244,12 +252,19 @@ pub struct ProfileMetadata {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct LinkedData {
-    pub project_id: Option<String>,
-    pub version_id: Option<String>,
+#[serde(rename_all = "snake_case")]
+pub enum LinkedData {
+    ModrinthModpack {
+        project_id: Option<String>,
+        version_id: Option<String>,
+        #[serde(default = "default_locked")]
+        locked: Option<bool>,
+    },
 
-    #[serde(default = "default_locked")]
-    pub locked: Option<bool>,
+    SharedProfile {
+        profile_id: String,
+        is_owner: bool,
+    },
 }
 
 // Called if linked_data is present but locked is not
@@ -344,7 +359,7 @@ impl Profile {
             resolution: None,
             fullscreen: None,
             hooks: None,
-            modrinth_update_version: None,
+            sync_update_version: None,
         })
     }
 
@@ -424,6 +439,10 @@ impl Profile {
                             &creds,
                         )
                             .await?;
+
+                        // Check existing shared profiles for updates
+                        tokio::task::spawn(Profiles::update_shared_projects());
+
                         drop(creds);
 
                         let mut new_profiles = state.profiles.write().await;
@@ -578,6 +597,49 @@ impl Profile {
             )
             .await?;
         Ok((path, version))
+    }
+
+    #[tracing::instrument(skip(self))]
+    #[theseus_macros::debug_pin]
+    pub async fn add_project_bytes_directly(
+        &self,
+        relative_path: &Path,
+        bytes: bytes::Bytes,
+    ) -> crate::Result<ProjectPathId> {
+        let state = State::get().await?;
+        let file_path = self.get_profile_full_path().await?.join(relative_path);
+        let project_path_id = ProjectPathId::new(relative_path);
+        write(&file_path, &bytes, &state.io_semaphore).await?;
+
+        let file_name = relative_path
+            .file_name()
+            .ok_or_else(|| {
+                crate::ErrorKind::InputError(format!(
+                    "Could not find file name for {:?}",
+                    relative_path
+                ))
+            })?
+            .to_string_lossy();
+
+        let hash = get_hash(bytes).await?;
+        {
+            let mut profiles = state.profiles.write().await;
+
+            if let Some(profile) = profiles.0.get_mut(&self.profile_id()) {
+                profile.projects.insert(
+                    project_path_id.clone(),
+                    Project {
+                        sha512: hash,
+                        disabled: false,
+                        metadata: ProjectMetadata::Unknown,
+                        file_name: file_name.to_string(),
+                    },
+                );
+                profile.metadata.date_modified = Utc::now();
+            }
+        }
+
+        Ok(project_path_id)
     }
 
     #[tracing::instrument(skip(self, bytes))]
@@ -872,19 +934,23 @@ impl Profiles {
     pub async fn update_modrinth_versions() {
         let res = async {
             let state = State::get().await?;
+
+            // First, we'll fetch updates for all Modrinth modpacks
             // Temporarily store all profiles that have modrinth linked data
             let mut modrinth_updatables: Vec<(ProfilePathId, String)> =
                 Vec::new();
             {
                 let profiles = state.profiles.read().await;
                 for (profile_path, profile) in profiles.0.iter() {
-                    if let Some(linked_data) = &profile.metadata.linked_data {
-                        if let Some(linked_project) = &linked_data.project_id {
-                            modrinth_updatables.push((
-                                profile_path.clone(),
-                                linked_project.clone(),
-                            ));
-                        }
+                    if let Some(LinkedData::ModrinthModpack {
+                        project_id: Some(ref linked_project),
+                        ..
+                    }) = &profile.metadata.linked_data
+                    {
+                        modrinth_updatables.push((
+                            profile_path.clone(),
+                            linked_project.clone(),
+                        ));
                     }
                 }
             }
@@ -922,10 +988,12 @@ impl Profiles {
                                     .contains(&loader.as_api_str().to_string())
                             });
                             if let Some(recent_version) = recent_version {
-                                profile.modrinth_update_version =
-                                    Some(recent_version.id.clone());
+                                profile.sync_update_version =
+                                    Some(ProfileUpdateData::ModrinthModpack(
+                                        recent_version.id.clone(),
+                                    ));
                             } else {
-                                profile.modrinth_update_version = None;
+                                profile.sync_update_version = None;
                             }
                         }
                         drop(new_profiles);
@@ -945,6 +1013,76 @@ impl Profiles {
         }
         .await;
 
+        match res {
+            Ok(()) => {}
+            Err(err) => {
+                tracing::warn!("Unable to update modrinth versions: {err}")
+            }
+        };
+    }
+
+    #[tracing::instrument]
+    #[theseus_macros::debug_pin]
+    pub async fn update_shared_projects() {
+        let res = async {
+            let state = State::get().await?;
+            // Next, get updates for all shared profiles
+            // Get SharedProfiles for all available
+            let shared_profiles = shared_profile::get_all().await?;
+            let mut update_profiles = HashMap::new();
+            {
+                let profiles = state.profiles.read().await;
+                for (profile_path, profile) in profiles.0.iter() {
+                    if let Some(LinkedData::SharedProfile {
+                        profile_id, ..
+                    }) = &profile.metadata.linked_data
+                    {
+                        if let Some(shared_profile) =
+                            shared_profiles.iter().find(|x| x.id == *profile_id)
+                        {
+                            // Check for update
+                            let update = shared_profile::check_updated(
+                                profile_path,
+                                shared_profile,
+                            )
+                            .await?;
+                            update_profiles
+                                .insert(profile_path.clone(), update);
+                        }
+                    }
+                }
+            }
+            {
+                let mut new_profiles = state.profiles.write().await;
+                for (profile_path, update) in update_profiles.iter() {
+                    if let Some(profile) = new_profiles.0.get_mut(profile_path)
+                    {
+                        profile.sync_update_version = Some(
+                            ProfileUpdateData::SharedProfile(update.clone()),
+                        );
+                    }
+                }
+            }
+            {
+                let profiles = state.profiles.read().await;
+                profiles.sync().await?;
+
+                for (profile_path, _) in update_profiles.iter() {
+                    let Some(profile) = profiles.0.get(profile_path) else {
+                        continue;
+                    };
+                    emit_profile(
+                        profile.uuid,
+                        profile_path,
+                        &profile.metadata.name,
+                        ProfilePayloadType::Edited,
+                    )
+                    .await?;
+                }
+            }
+            Ok::<(), crate::Error>(())
+        }
+        .await;
         match res {
             Ok(()) => {}
             Err(err) => {

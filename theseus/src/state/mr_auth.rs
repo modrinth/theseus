@@ -116,7 +116,7 @@ pub struct ModrinthAuthFlow {
 impl ModrinthAuthFlow {
     pub async fn new(provider: &str) -> crate::Result<Self> {
         let (socket, _) = async_tungstenite::tokio::connect_async(format!(
-            "wss://api.modrinth.com/v2/auth/ws?provider={provider}"
+            "wss://staging-api.modrinth.com/v2/auth/ws?provider={provider}"
         ))
         .await?;
         Ok(Self { socket })
@@ -209,7 +209,7 @@ async fn get_result_from_res(
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 struct Session {
     session: String,
 }

@@ -12,6 +12,7 @@ pub mod pack;
 pub mod process;
 pub mod profile;
 pub mod profile_create;
+pub mod profile_share;
 pub mod settings;
 pub mod tags;
 pub mod utils;

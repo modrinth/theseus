@@ -169,7 +169,7 @@ const filteredResults = computed(() => {
     })
   } else if (filters.value === 'Downloaded modpacks') {
     instances = instances.filter((instance) => {
-      return instance.metadata?.linked_data
+      return instance.metadata?.linked_data?.modrinth_modpack
     })
   }
 

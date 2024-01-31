@@ -135,7 +135,7 @@ const installed = ref(props.installed)
 async function install() {
   installing.value = true
   const versions = await useFetch(
-    `https://api.modrinth.com/v2/project/${props.project.project_id}/version`,
+    `https://staging-api.modrinth.com/v2/project/${props.project.project_id}/version`,
     'project versions'
   )
   let queuedVersionData
@@ -156,7 +156,7 @@ async function install() {
       packs.length === 0 ||
       !packs
         .map((value) => value.metadata)
-        .find((pack) => pack.linked_data?.project_id === props.project.project_id)
+        .find((pack) => pack.linked_data?.modrinth_modpack?.project_id === props.project.project_id)
     ) {
       await packInstall(
         props.project.project_id,

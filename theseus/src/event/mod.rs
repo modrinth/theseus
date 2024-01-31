@@ -229,6 +229,9 @@ pub enum CommandPayload {
         // run or install .mrpack
         path: PathBuf,
     },
+    OpenSharedProfile {
+        link: String,
+    },
 }
 
 #[derive(Serialize, Clone)]

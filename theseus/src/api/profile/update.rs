@@ -6,7 +6,7 @@ use crate::{
     pack::{self, install_from::generate_pack_from_version_id},
     prelude::{ProfilePathId, ProjectPathId},
     profile::get,
-    state::{ProfileInstallStage, Project},
+    state::{LinkedData, ProfileInstallStage, Project},
     LoadingBarType, State,
 };
 use futures::try_join;
@@ -30,15 +30,14 @@ pub async fn update_managed_modrinth_version(
     };
 
     // Extract modrinth pack information, if appropriate
-    let linked_data = profile
-        .metadata
-        .linked_data
-        .as_ref()
-        .ok_or_else(unmanaged_err)?;
-    let project_id: &String =
-        linked_data.project_id.as_ref().ok_or_else(unmanaged_err)?;
-    let version_id =
-        linked_data.version_id.as_ref().ok_or_else(unmanaged_err)?;
+    let Some(LinkedData::ModrinthModpack {
+        project_id: Some(ref project_id),
+        version_id: Some(ref version_id),
+        ..
+    }) = profile.metadata.linked_data
+    else {
+        return Err(unmanaged_err().into());
+    };
 
     // Replace the pack with the new version
     replace_managed_modrinth(
@@ -107,15 +106,14 @@ pub async fn repair_managed_modrinth(
     .await?;
 
     // Extract modrinth pack information, if appropriate
-    let linked_data = profile
-        .metadata
-        .linked_data
-        .as_ref()
-        .ok_or_else(unmanaged_err)?;
-    let project_id: &String =
-        linked_data.project_id.as_ref().ok_or_else(unmanaged_err)?;
-    let version_id =
-        linked_data.version_id.as_ref().ok_or_else(unmanaged_err)?;
+    let Some(LinkedData::ModrinthModpack {
+        project_id: Some(ref project_id),
+        version_id: Some(ref version_id),
+        ..
+    }) = profile.metadata.linked_data
+    else {
+        return Err(unmanaged_err().into());
+    };
 
     // Replace the pack with the same version
     replace_managed_modrinth(
