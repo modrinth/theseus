@@ -1,0 +1,68 @@
+{
+  "name": "Theseus",
+
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+
+  "features": {
+    "ghcr.io/devcontainers/features/node": {
+      "version": "18"
+    },
+    "ghcr.io/devcontainers/features/desktop-lite:1": {},
+    "ghcr.io/devcontainers/features/github-cli": {}
+  },
+
+  "forwardPorts": [6080, 5901],
+
+  "portsAttributes": {
+    "6080": {
+      "label": "desktop"
+    },
+    "5901": {
+      "label": "vnc"
+    }
+  },
+
+  "onCreateCommand": ". ${NVM_DIR}/nvm.sh && nvm install 18 && nvm use 18 && corepack enable",
+
+  "updateContentCommand": "cd theseus_gui && pnpm install && pnpm build && cd .. && cargo build --bin theseus_gui",
+
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "editor.formatOnSave": true,
+        "eslint.run": "onSave"
+      },
+      "extensions": [
+        // Vue Language Features (Volar) by Vue
+        // Adds support for Vue SFC and improves TypeScript inference of Vue files.
+        "Vue.volar",
+        // [REMOVED] TypeScript and JavaScript Language Features by vscode
+        // Reason: Volar implements TypeScript language server, and removal avoids conflicts between them.
+        "-vscode.typescript-language-features",
+        // ESLint by Microsoft
+        // Adds ESLint in-editor linting.
+        "dbaeumer.vscode-eslint",
+        // Prettier by Prettier
+        // Formats JavaScript, TypeScript, Vue and other supported code files.
+        "esbenp.prettier-vscode",
+        // EditorConfig for VS Code
+        // Adds support for EditorConfig file.
+        "EditorConfig.EditorConfig",
+        // JS Refactoring Assistant by P42
+        // Provides lots of useful JavaScript, TypeScript and Vue refactors.
+        "p42ai.refactor",
+        // TypeScript Explorer by mxs
+        // Allows to quickly explore TypeScript types without a hassle.
+        "mxsdev.typescript-explorer",
+        // Tauri by Tauri
+        // Adds helpful commands and config file validation for Tauri development.
+        "tauri-apps.tauri-vscode",
+        // CSS Variable Autocomplete by Vu Nguyen
+        // Helps with variables when writing CSS files.
+        "vunguyentuan.vscode-css-variables"
+      ]
+    }
+  }
+}

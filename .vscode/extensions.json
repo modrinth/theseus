@@ -1,12 +1,13 @@
 {
   "recommendations": [
-    "tauri-apps.tauri-vscode",
-    "vunguyentuan.vscode-css-variables",
-    "stylelint.vscode-stylelint",
-    "eamodio.gitlens",
+    "Vue.volar",
+    "vscode.typescript-language-features",
+    "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
-    "pivaszbs.svelte-autoimport",
-    "svelte.svelte-vscode",
-    "ardenivanov.svelte-intellisense"
+    "EditorConfig.EditorConfig",
+    "p42ai.refactor",
+    "mxsdev.typescript-explorer",
+    "tauri-apps.tauri-vscode",
+    "vunguyentuan.vscode-css-variables"
   ]
 }
