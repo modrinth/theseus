@@ -112,3 +112,6 @@ fabric.properties
 
 theseus.iml
 
+# flatpak
+.flatpak-builder
+flatbuild

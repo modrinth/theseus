@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+  <id>com.modrinth.ModrinthApp</id>
+  <launchable type="desktop-id">com.modrinth.ModrinthApp.desktop</launchable>
+  <name>Modrinth App</name>
+  <developer_name>Modrinth</developer_name>
+  <summary>Modrinth's game launcher for creating and playing Modrinth projects</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-only</project_license>
+	<!--<url type="homepage">https://modrinth.com</url>-->
+	<!--<url type="bugtracker">https://github.com/modrinth/theseus/issues</url>-->
+  <!--<url type="vcs-browser">https://github.com/modrinth/theseus</url>-->
+  <!--<url type="contribute">https://github.com/modrinth/theseus</url>-->
+  <description>
+    <p>Modrinth's game launcher for creating and playing Modrinth projects</p>
+  </description>
+  <content_rating type="oars-1.1">
+    <content_attribute id="violence-fantasy">moderate</content_attribute>
+    <content_attribute id="social-chat">intense</content_attribute>
+  </content_rating>
+</component>
