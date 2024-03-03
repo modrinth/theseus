@@ -4,7 +4,7 @@ use crate::event::{LoadingBarId, LoadingBarType};
 use crate::jre::{self, JAVA_17_KEY, JAVA_18PLUS_KEY, JAVA_8_KEY};
 use crate::launcher::io::IOError;
 use crate::prelude::JavaVersion;
-use crate::state::ProfileInstallStage;
+use crate::state::{Credentials, ProfileInstallStage};
 use crate::util::io;
 use crate::{
     process,
@@ -22,7 +22,6 @@ use uuid::Uuid;
 
 mod args;
 
-pub mod auth;
 pub mod download;
 
 // All nones -> disallowed
@@ -368,7 +367,7 @@ pub async fn launch_minecraft(
     wrapper: &Option<String>,
     memory: &st::MemorySettings,
     resolution: &st::WindowSize,
-    credentials: &auth::Credentials,
+    credentials: &Credentials,
     post_exit_hook: Option<String>,
     profile: &Profile,
 ) -> crate::Result<Arc<tokio::sync::RwLock<MinecraftChild>>> {

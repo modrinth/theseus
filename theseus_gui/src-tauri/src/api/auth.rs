@@ -1,16 +1,14 @@
 use crate::api::Result;
+use chrono::{Duration, Utc};
 use tauri::plugin::TauriPlugin;
-use theseus::{hydra::init::DeviceLoginSuccess, prelude::*};
+use theseus::prelude::*;
 
 pub fn init<R: tauri::Runtime>() -> TauriPlugin<R> {
     tauri::plugin::Builder::new("auth")
         .invoke_handler(tauri::generate_handler![
-            auth_authenticate_begin_flow,
-            auth_authenticate_await_completion,
-            auth_cancel_flow,
-            auth_refresh,
+            auth_get_default_user,
+            auth_set_default_user,
             auth_remove_user,
-            auth_has_user,
             auth_users,
             auth_get_user,
         ])
@@ -20,47 +18,69 @@ pub fn init<R: tauri::Runtime>() -> TauriPlugin<R> {
 /// Authenticate a user with Hydra - part 1
 /// This begins the authentication flow quasi-synchronously, returning a URL to visit (that the user will sign in at)
 #[tauri::command]
-pub async fn auth_authenticate_begin_flow() -> Result<DeviceLoginSuccess> {
-    Ok(auth::authenticate_begin_flow().await?)
-}
+pub async fn auth_login(app: tauri::AppHandle) -> Result<Option<Credentials>> {
+    let flow = minecraft_auth::begin_login().await?;
 
-/// Authenticate a user with Hydra - part 2
-/// This completes the authentication flow quasi-synchronously, returning the sign-in credentials
-/// (and also adding the credentials to the state)
-#[tauri::command]
-pub async fn auth_authenticate_await_completion() -> Result<Credentials> {
-    Ok(auth::authenticate_await_complete_flow().await?)
-}
+    let start = Utc::now();
 
-#[tauri::command]
-pub async fn auth_cancel_flow() -> Result<()> {
-    Ok(auth::cancel_flow().await?)
-}
+    let window = tauri::WindowBuilder::new(
+        &app,
+        "signin",
+        tauri::WindowUrl::External(flow.redirect_uri.parse().map_err(
+            |_| {
+                theseus::ErrorKind::OtherError(
+                    "Error parsing auth redirect URL".to_string(),
+                )
+                .as_error()
+            },
+        )?),
+    )
+    .title("Sign into Modrinth")
+    .build()?;
 
-/// Refresh some credentials using Hydra, if needed
-// invoke('plugin:auth|auth_refresh',user)
-#[tauri::command]
-pub async fn auth_refresh(user: uuid::Uuid) -> Result<Credentials> {
-    Ok(auth::refresh(user).await?)
-}
+    while (Utc::now() - start) < Duration::minutes(10) {
+        if window
+            .url()
+            .as_str()
+            .starts_with("https://login.live.com/oauth20_desktop.srf")
+        {
+            if let Some((_, code)) =
+                window.url().query_pairs().find(|x| x.0 == "code")
+            {
+                window.close()?;
+                let val =
+                    minecraft_auth::finish_login(&code.clone(), flow).await?;
 
+                return Ok(Some(val));
+            }
+        }
+
+        tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+    }
+
+    window.close()?;
+    Ok(None)
+}
 #[tauri::command]
 pub async fn auth_remove_user(user: uuid::Uuid) -> Result<()> {
-    Ok(auth::remove_user(user).await?)
+    Ok(minecraft_auth::remove_user(user).await?)
 }
 
-/// Check if a user exists in Theseus
-// invoke('plugin:auth|auth_has_user',user)
 #[tauri::command]
-pub async fn auth_has_user(user: uuid::Uuid) -> Result<bool> {
-    Ok(auth::has_user(user).await?)
+pub async fn auth_get_default_user() -> Result<Option<uuid::Uuid>> {
+    Ok(minecraft_auth::get_default_user().await?)
+}
+
+#[tauri::command]
+pub async fn auth_set_default_user(user: uuid::Uuid) -> Result<()> {
+    Ok(minecraft_auth::set_default_user(user).await?)
 }
 
 /// Get a copy of the list of all user credentials
 // invoke('plugin:auth|auth_users',user)
 #[tauri::command]
 pub async fn auth_users() -> Result<Vec<Credentials>> {
-    Ok(auth::users().await?)
+    Ok(minecraft_auth::users().await?)
 }
 
 /// Get a user from the UUID
@@ -68,5 +88,5 @@ pub async fn auth_users() -> Result<Vec<Credentials>> {
 // invoke('plugin:auth|auth_users',user)
 #[tauri::command]
 pub async fn auth_get_user(user: uuid::Uuid) -> Result<Credentials> {
-    Ok(auth::get_user(user).await?)
+    Ok(minecraft_auth::get_user(user).await?)
 }

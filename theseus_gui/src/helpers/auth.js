@@ -18,41 +18,26 @@ import { invoke } from '@tauri-apps/api/tauri'
 /// This returns a DeviceLoginSuccess object, with two relevant fields:
 ///  - verification_uri: the URL to go to to complete the flow
 ///  - user_code: the code to enter on the verification_uri page
-export async function authenticate_begin_flow() {
-  return await invoke('plugin:auth|auth_authenticate_begin_flow')
+export async function login() {
+  return await invoke('auth_login')
 }
 
-/// Authenticate a user with Hydra - part 2
-/// This completes the authentication flow quasi-synchronously, returning the sign-in credentials
-/// (and also adding the credentials to the state)
-/// This returns a Credentials object
-export async function authenticate_await_completion() {
-  return await invoke('plugin:auth|auth_authenticate_await_completion')
-}
-
-export async function cancel_flow() {
-  return await invoke('plugin:auth|auth_cancel_flow')
-}
-
-/// Refresh some credentials using Hydra, if needed
+/// Retrieves the default user
 /// user is UUID
-/// update_name is bool
-/// Returns a Credentials object
-export async function refresh(user, update_name) {
-  return await invoke('plugin:auth|auth_refresh', { user, update_name })
+export async function get_default_user() {
+  return await invoke('plugin:auth|auth_get_default_user')
+}
+
+/// Updates the default user
+/// user is UUID
+export async function set_default_user(user) {
+  return await invoke('plugin:auth|auth_set_default_user', { user })
 }
 
 /// Remove a user account from the database
 /// user is UUID
 export async function remove_user(user) {
   return await invoke('plugin:auth|auth_remove_user', { user })
-}
-
-// Add a path as a profile in-memory
-// user is UUID
-/// Returns a bool
-export async function has_user(user) {
-  return await invoke('plugin:auth|auth_has_user', { user })
 }
 
 /// Returns a list of users

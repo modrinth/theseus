@@ -146,6 +146,7 @@ fn main() {
             initialize_state,
             is_dev,
             toggle_decorations,
+            api::auth::auth_login,
         ]);
 
     builder

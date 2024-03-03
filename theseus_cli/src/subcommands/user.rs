@@ -40,8 +40,9 @@ impl UserAdd {
         info!("Adding new user account to Theseus");
         info!("A browser window will now open, follow the login flow there.");
 
-        let login = auth::authenticate_begin_flow().await?;
-        let flow = tokio::spawn(auth::authenticate_await_complete_flow());
+        let login = minecraft_auth::authenticate_begin_flow().await?;
+        let flow =
+            tokio::spawn(minecraft_auth::authenticate_await_complete_flow());
 
         info!("Opening browser window at {}", login.verification_uri);
         info!("Your code is {}", login.user_code);
@@ -95,7 +96,7 @@ impl UserList {
         let state = State::get().await?;
         let default = state.settings.read().await.default_user;
 
-        let users = auth::users().await?;
+        let users = minecraft_auth::users().await?;
         let rows = users.iter().map(|user| UserRow::from(user, default));
 
         let table = table(rows);
@@ -123,10 +124,10 @@ impl UserRemove {
         info!("Removing user {}", self.user.as_hyphenated());
 
         if confirm_async(String::from("Do you wish to continue"), true).await? {
-            if !auth::has_user(self.user).await? {
+            if !minecraft_auth::has_user(self.user).await? {
                 warn!("Profile was not managed by Theseus!");
             } else {
-                auth::remove_user(self.user).await?;
+                minecraft_auth::remove_user(self.user).await?;
                 State::sync().await?;
                 success!("User removed!");
             }

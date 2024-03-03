@@ -18,7 +18,7 @@ import { is_dir_writeable, change_config_dir, get, set } from '@/helpers/setting
 import { get_max_memory } from '@/helpers/jre'
 import { get as getCreds, logout } from '@/helpers/mr_auth.js'
 import JavaSelector from '@/components/ui/JavaSelector.vue'
-import ModrinthLoginScreen from '@/components/ui/tutorial/ModrinthLoginScreen.vue'
+import ModrinthLoginScreen from '@/components/ui/ModrinthLoginScreen.vue'
 import { mixpanel_opt_out_tracking, mixpanel_opt_in_tracking } from '@/helpers/mixpanel'
 import { open } from '@tauri-apps/api/dialog'
 import { getOS } from '@/helpers/utils.js'

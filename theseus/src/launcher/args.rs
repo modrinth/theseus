@@ -1,6 +1,6 @@
 //! Minecraft CLI argument logic
-use super::auth::Credentials;
 use crate::launcher::parse_rules;
+use crate::state::Credentials;
 use crate::{
     state::{MemorySettings, WindowSize},
     util::{io::IOError, platform::classpath_separator},
@@ -274,7 +274,7 @@ fn parse_minecraft_argument(
         .replace("${auth_xuid}", "0")
         .replace("${auth_uuid}", &uuid.simple().to_string())
         .replace("${uuid}", &uuid.simple().to_string())
-        .replace("${clientid}", "c4502edb-87c6-40cb-b595-64a280cf8906")
+        .replace("${clientid}", "c4502edb-c6-40cb-b595-64a280cf8906")
         .replace("${user_properties}", "{}")
         .replace("${user_type}", "msa")
         .replace("${version_name}", version)

@@ -1,7 +1,8 @@
 use std::io::{Read, SeekFrom};
 
+use crate::state::Credentials;
 use crate::{
-    prelude::{Credentials, DirectoryInfo},
+    prelude::DirectoryInfo,
     util::io::{self, IOError},
     {state::ProfilePathId, State},
 };
@@ -140,8 +141,14 @@ pub async fn get_output_by_filename(
     let logs_folder = DirectoryInfo::profile_logs_dir(profile_subpath).await?;
     let path = logs_folder.join(file_name);
 
-    let credentials: Vec<Credentials> =
-        state.users.read().await.clone().0.into_values().collect();
+    let credentials: Vec<Credentials> = state
+        .users
+        .read()
+        .await
+        .users
+        .clone()
+        .into_values()
+        .collect();
 
     // Load .gz file into String
     if let Some(ext) = path.extension() {
@@ -296,8 +303,14 @@ pub async fn get_generic_live_log_cursor(
     let output = String::from_utf8_lossy(&buffer).to_string(); // Convert to String
     let cursor = cursor + bytes_read as u64; // Update cursor
 
-    let credentials: Vec<Credentials> =
-        state.users.read().await.clone().0.into_values().collect();
+    let credentials: Vec<Credentials> = state
+        .users
+        .read()
+        .await
+        .users
+        .clone()
+        .into_values()
+        .collect();
     let output = CensoredString::censor(output, &credentials);
     Ok(LatestLogCursor {
         cursor,

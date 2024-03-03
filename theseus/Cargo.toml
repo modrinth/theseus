@@ -24,7 +24,6 @@ flate2 = "1.0.27"
 tempfile = "3.5.0"
 urlencoding = "2.1.3"
 
-
 chrono = { version = "0.4.19", features = ["serde"] }
 daedalus = { version = "0.1.25" }
 dirs = "5.0.1"
@@ -50,6 +49,7 @@ reqwest = { version = "0.11", features = ["json", "stream"] }
 tokio = { version = "1", features = ["full"] }
 tokio-stream = { version = "0.1", features = ["fs"] }
 async-recursion = "1.0.4"
+tiny_http = "0.12.0"
 
 notify = { version = "5.1.0", default-features = false }
 notify-debouncer-mini = { version = "0.2.1", default-features = false }
@@ -60,6 +60,11 @@ dunce = "1.0.3"
 whoami = "1.4.0"
 
 discord-rich-presence = "0.2.3"
+
+rand = "0.8"
+openssl = "0.10"
+byteorder = "1.5.0"
+base64 = "0.21.7"
 
 [target.'cfg(windows)'.dependencies] 
 winreg = "0.50.0"

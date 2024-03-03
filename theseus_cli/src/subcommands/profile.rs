@@ -336,7 +336,7 @@ impl ProfileRun {
                     ))
             })
             .await?;
-        let credentials = auth::refresh(id).await?;
+        let credentials = minecraft_auth::refresh(id).await?;
 
         let profile_path_id = ProfilePathId::from_fs_path(path).await?;
         let proc_lock =

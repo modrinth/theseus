@@ -24,7 +24,6 @@ pub struct Settings {
     pub custom_java_args: Vec<String>,
     pub custom_env_args: Vec<(String, String)>,
     pub java_globals: JavaGlobals,
-    pub default_user: Option<uuid::Uuid>,
     pub hooks: Hooks,
     pub max_concurrent_downloads: usize,
     pub max_concurrent_writes: usize,
@@ -93,7 +92,6 @@ impl Settings {
                 custom_java_args: Vec::new(),
                 custom_env_args: Vec::new(),
                 java_globals: JavaGlobals::new(),
-                default_user: None,
                 hooks: Hooks::default(),
                 max_concurrent_downloads: 10,
                 max_concurrent_writes: 10,
@@ -148,32 +146,6 @@ impl Settings {
             Ok(()) => {}
             Err(err) => {
                 tracing::warn!("Unable to update launcher java: {err}")
-            }
-        };
-    }
-
-    #[tracing::instrument]
-    #[theseus_macros::debug_pin]
-    pub async fn update_default_user() {
-        let res = async {
-            let state = State::get().await?;
-            let settings_read = state.settings.read().await;
-
-            if settings_read.default_user.is_none() {
-                drop(settings_read);
-                let users = state.users.read().await;
-                let user = users.0.iter().next().map(|(id, _)| *id);
-                state.settings.write().await.default_user = user;
-            }
-
-            Ok::<(), crate::Error>(())
-        }
-        .await;
-
-        match res {
-            Ok(()) => {}
-            Err(err) => {
-                tracing::warn!("Unable to update default user: {err}")
             }
         };
     }
