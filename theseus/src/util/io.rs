@@ -4,7 +4,7 @@
 use std::{path::Path, io::Write};
 
 use tempfile::NamedTempFile;
-use tauri::async_runtime::spawn_blocking;
+use tokio::task::spawn_blocking;
 
 #[derive(Debug, thiserror::Error)]
 pub enum IOError {
