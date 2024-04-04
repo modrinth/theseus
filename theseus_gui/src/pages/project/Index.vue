@@ -325,7 +325,9 @@ async function fetchProjectData() {
   installed.value =
     instance.value?.path &&
     (await check_installed(instance.value.path, data.value.id).catch(handleError))
+
   breadcrumbs.setName('Project', data.value.title)
+
   installedVersion.value = instance.value
     ? Object.values(instance.value.projects).find(
         (p) => p?.metadata?.version?.project_id === data.value.id

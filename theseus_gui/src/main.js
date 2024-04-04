@@ -2,8 +2,10 @@ import { createApp } from 'vue'
 import router from '@/routes'
 import App from '@/App.vue'
 import { createPinia } from 'pinia'
+import { createPlugin as createVintl } from '@vintl/vintl/plugin'
 import 'omorphia/dist/style.css'
 import '@/assets/stylesheets/global.scss'
+import '@/assets/stylesheets/components.scss'
 import 'floating-vue/dist/style.css'
 import FloatingVue from 'floating-vue'
 import { get_opening_command, initialize_state } from '@/helpers/state'
@@ -14,9 +16,25 @@ import { isDev } from './helpers/utils.js'
 
 const pinia = createPinia()
 
+const vintl = createVintl({
+  controllerOpts: {
+    defaultLocale: 'en-US',
+    locale: 'en-US',
+    locales: [
+      {
+        tag: 'en-US',
+        meta: {
+          displayName: 'American English',
+        },
+      },
+    ],
+  },
+})
+
 let app = createApp(App)
 app.use(router)
 app.use(pinia)
+app.use(vintl)
 app.use(FloatingVue)
 app.mixin(loadCssMixin)
 
@@ -54,7 +72,7 @@ initialize_state()
       .finally(() => {
         mountedApp.initialize()
         get_opening_command().then((command) => {
-          console.log(JSON.stringify(command)) // change me to use whatever FE command handler is made
+          console.log('Opening Command', JSON.stringify(command)) // change me to use whatever FE command handler is made
         })
       })
   })

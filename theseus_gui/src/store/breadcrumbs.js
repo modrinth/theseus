@@ -1,3 +1,5 @@
+import { computed } from 'vue'
+
 import { defineStore } from 'pinia'
 
 export const useBreadcrumbs = defineStore('breadcrumbsStore', {
@@ -34,3 +36,28 @@ export const useBreadcrumbs = defineStore('breadcrumbsStore', {
     },
   },
 })
+
+export const useBreadcrumbContext = (route) => {
+  const breadcrumbs = useBreadcrumbs()
+
+  const routeContext = computed(() => {
+    const { meta } = route
+    if (meta?.useContext) {
+      return breadcrumbs.context
+    } else if (meta?.useRootContext) {
+      return breadcrumbs.rootContext
+    } else {
+      return null
+    }
+  })
+
+  const routeBreadcrumbs = computed(() => {
+    const { meta } = route
+    return routeContext.value ? [routeContext.value, ...meta.breadcrumb] : meta.breadcrumb
+  })
+
+  return {
+    routeContext,
+    routeBreadcrumbs,
+  }
+}

@@ -189,7 +189,7 @@ defineProps({
             type="text"
             :placeholder="`Search ${projectType}s...`"
           />
-          <Button @click="() => (query = '')">
+          <Button class="r-btn" @click="() => (query = '')">
             <XIcon />
           </Button>
         </div>

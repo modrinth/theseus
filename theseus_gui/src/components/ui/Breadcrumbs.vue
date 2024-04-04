@@ -1,53 +1,60 @@
 <template>
   <div class="breadcrumbs">
-    <Button class="breadcrumbs__back transparent" icon-only @click="$router.back()">
-      <ChevronLeftIcon />
-    </Button>
-    <Button class="breadcrumbs__forward transparent" icon-only @click="$router.forward()">
-      <ChevronRightIcon />
-    </Button>
-    {{ breadcrumbData.resetToNames(breadcrumbs) }}
-    <div v-for="breadcrumb in breadcrumbs" :key="breadcrumb.name" class="breadcrumbs__item">
+    <div
+      v-if="props.afterLogo && breadcrumbContext.routeBreadcrumbs.value?.length > 0"
+      class="breadcrumbs__item"
+    >
+      <ChevronRightIcon class="chevron" />
+    </div>
+    <div
+      v-for="breadcrumb in breadcrumbContext.routeBreadcrumbs.value"
+      :key="breadcrumb.name"
+      class="breadcrumbs__item"
+    >
       <router-link
         v-if="breadcrumb.link"
         :to="{
           path: breadcrumb.link.replace('{id}', encodeURIComponent($route.params.id)),
           query: breadcrumb.query,
         }"
-        >{{
-          breadcrumb.name.charAt(0) === '?'
-            ? breadcrumbData.getName(breadcrumb.name.slice(1))
-            : breadcrumb.name
-        }}
+      >
+        {{ breadcrumbName(breadcrumb.name) }}
       </router-link>
-      <span v-else class="selected">{{
-        breadcrumb.name.charAt(0) === '?'
-          ? breadcrumbData.getName(breadcrumb.name.slice(1))
-          : breadcrumb.name
-      }}</span>
+      <span v-else class="selected">
+        {{ breadcrumbName(breadcrumb.name) }}
+      </span>
       <ChevronRightIcon v-if="breadcrumb.link" class="chevron" />
     </div>
   </div>
 </template>
 
 <script setup>
-import { ChevronRightIcon, Button, ChevronLeftIcon } from 'omorphia'
-import { useBreadcrumbs } from '@/store/breadcrumbs'
+import { ChevronRightIcon } from 'omorphia'
+import { useBreadcrumbs, useBreadcrumbContext } from '@/store/breadcrumbs'
 import { useRoute } from 'vue-router'
-import { computed } from 'vue'
 
-const route = useRoute()
+const props = defineProps({
+  afterLogo: {
+    type: Boolean,
+    default: false,
+  },
+})
 
 const breadcrumbData = useBreadcrumbs()
-const breadcrumbs = computed(() => {
-  const additionalContext =
-    route.meta.useContext === true
-      ? breadcrumbData.context
-      : route.meta.useRootContext === true
-      ? breadcrumbData.rootContext
-      : null
-  return additionalContext ? [additionalContext, ...route.meta.breadcrumb] : route.meta.breadcrumb
+
+const route = useRoute()
+const breadcrumbContext = useBreadcrumbContext(route)
+
+breadcrumbData.$subscribe(() => {
+  breadcrumbData?.resetToNames(breadcrumbContext.routeBreadcrumbs.value)
 })
+
+const breadcrumbName = (bcn) => {
+  if (bcn.charAt(0) === '?') {
+    return breadcrumbData.getName(bcn.slice(1))
+  }
+  return bcn
+}
 </script>
 
 <style scoped lang="scss">
@@ -61,7 +68,10 @@ const breadcrumbs = computed(() => {
     vertical-align: center;
     margin: auto 0;
 
-    .chevron,
+    .chevron {
+      margin: auto 0.5rem;
+    }
+
     a {
       margin: auto 0;
     }

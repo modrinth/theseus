@@ -146,20 +146,39 @@ import {
 } from '@/helpers/process'
 import { offline_listener, process_listener, profile_listener } from '@/helpers/events'
 import { useRoute, useRouter } from 'vue-router'
-import { ref, onUnmounted } from 'vue'
+import { ref, onUnmounted, defineProps, watch } from 'vue'
 import { handleError, useBreadcrumbs, useLoading } from '@/store/state'
 import { isOffline, showProfileInFolder } from '@/helpers/utils.js'
 import ContextMenu from '@/components/ui/ContextMenu.vue'
 import { mixpanel_track } from '@/helpers/mixpanel'
 import { convertFileSrc } from '@tauri-apps/api/tauri'
 import { useFetch } from '@/helpers/fetch'
+import { useInstances } from '@/store/instances'
 
-const route = useRoute()
+const props = defineProps({
+  id: {
+    type: String,
+    required: false,
+    default: null,
+  },
+})
 
 const router = useRouter()
+const route = useRoute()
+
 const breadcrumbs = useBreadcrumbs()
 
-const instance = ref(await get(route.params.id).catch(handleError))
+const instance = ref(await get(route.params.id || props.id).catch(handleError))
+
+watch(
+  () => route.params.id,
+  async (id) => {
+    if (!id) return
+    instance.value = await get(id).catch(handleError)
+  }
+)
+
+const instancesStore = useInstances()
 
 breadcrumbs.setName(
   'Instance',
@@ -194,6 +213,8 @@ const startInstance = async (context) => {
     game_version: instance.value.metadata.game_version,
     source: context,
   })
+
+  await instancesStore.refreshInstances()
 }
 
 const checkProcess = async () => {
@@ -419,6 +440,7 @@ Button {
     width: 100%;
     color: var(--color-primary);
     box-shadow: none;
+    justify-content: start;
 
     &.router-link-exact-active {
       box-shadow: var(--shadow-inset-lg);

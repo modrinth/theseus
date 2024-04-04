@@ -1,23 +1,23 @@
 <script setup>
-import { onUnmounted, ref, shallowRef } from 'vue'
+import { onUnmounted, ref } from 'vue'
 import GridDisplay from '@/components/GridDisplay.vue'
-import { list } from '@/helpers/profile.js'
 import { useRoute } from 'vue-router'
 import { useBreadcrumbs } from '@/store/breadcrumbs'
 import { offline_listener, profile_listener } from '@/helpers/events.js'
-import { handleError } from '@/store/notifications.js'
 import { Button, PlusIcon } from 'omorphia'
 import InstanceCreationModal from '@/components/ui/InstanceCreationModal.vue'
 import { NewInstanceImage } from '@/assets/icons'
 import { isOffline } from '@/helpers/utils'
+import { useInstances } from '@/store/instances'
+import { storeToRefs } from 'pinia'
 
 const route = useRoute()
 const breadcrumbs = useBreadcrumbs()
 
 breadcrumbs.setRootContext({ name: 'Library', link: route.path })
 
-const profiles = await list(true).catch(handleError)
-const instances = shallowRef(Object.values(profiles))
+const instancesStore = useInstances()
+const { instanceList } = storeToRefs(instancesStore)
 
 const offline = ref(await isOffline())
 const unlistenOffline = await offline_listener((b) => {
@@ -25,9 +25,9 @@ const unlistenOffline = await offline_listener((b) => {
 })
 
 const unlistenProfile = await profile_listener(async () => {
-  const profiles = await list(true).catch(handleError)
-  instances.value = Object.values(profiles)
+  await instancesStore.refreshInstances()
 })
+
 onUnmounted(() => {
   unlistenProfile()
   unlistenOffline()
@@ -35,7 +35,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <GridDisplay v-if="instances.length > 0" label="Instances" :instances="instances" />
+  <GridDisplay v-if="instanceList.length > 0" label="Instances" :instances="instanceList" />
   <div v-else class="no-instance">
     <div class="icon">
       <NewInstanceImage />

@@ -1,20 +1,25 @@
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { RouterView, RouterLink, useRouter, useRoute } from 'vue-router'
 import {
   HomeIcon,
   SearchIcon,
   LibraryIcon,
-  PlusIcon,
   SettingsIcon,
   FileIcon,
   Button,
   Notifications,
   XIcon,
   Card,
+  TextLogo,
+  PlusIcon,
+  Avatar,
 } from 'omorphia'
+
 import { useLoading, useTheming } from '@/store/state'
-import AccountsCard from '@/components/ui/AccountsCard.vue'
+import { useInstances } from '@/store/instances'
+// import AccountsCard from './components/ui/AccountsCard.vue'
+import AccountDropdown from '@/components/ui/platform/AccountDropdown.vue'
 import InstanceCreationModal from '@/components/ui/InstanceCreationModal.vue'
 import { get } from '@/helpers/settings'
 import Breadcrumbs from '@/components/ui/Breadcrumbs.vue'
@@ -23,29 +28,42 @@ import SplashScreen from '@/components/ui/SplashScreen.vue'
 import ModrinthLoadingIndicator from '@/components/modrinth-loading-indicator'
 import { handleError, useNotifications } from '@/store/notifications.js'
 import { offline_listener, command_listener, warning_listener } from '@/helpers/events.js'
-import { MinimizeIcon, MaximizeIcon, ChatIcon } from '@/assets/icons'
-import { type } from '@tauri-apps/api/os'
-import { appWindow } from '@tauri-apps/api/window'
+import {
+  MinimizeIcon,
+  MaximizeIcon,
+  ChatIcon,
+  ArrowLeftFromLineIcon,
+  ArrowRightFromLineIcon,
+} from '@/assets/icons'
 import { isDev, getOS, isOffline, showLauncherLogsFolder } from '@/helpers/utils.js'
 import {
   mixpanel_track,
   mixpanel_init,
   mixpanel_opt_out_tracking,
   mixpanel_is_loaded,
-} from '@/helpers/mixpanel'
+} from '@/helpers/mixpanel.js'
+import { useDisableClicks } from '@/composables/click.js'
+import { openExternal } from '@/helpers/external.js'
+import { await_sync, check_safe_loading_bars_complete } from '@/helpers/state.js'
+import { install_from_file } from '@/helpers/pack.js'
+import { iconPathAsUrl } from '@/helpers/icon'
+
+import URLConfirmModal from '@/components/ui/URLConfirmModal.vue'
+import StickyTitleBar from '@/components/ui/tutorial/StickyTitleBar.vue'
+import OnboardingScreen from '@/components/ui/tutorial/OnboardingScreen.vue'
+
 import { saveWindowState, StateFlags } from 'tauri-plugin-window-state-api'
 import { getVersion } from '@tauri-apps/api/app'
 import { window as TauriWindow } from '@tauri-apps/api'
 import { TauriEvent } from '@tauri-apps/api/event'
-import { await_sync, check_safe_loading_bars_complete } from './helpers/state'
 import { confirm } from '@tauri-apps/api/dialog'
-import URLConfirmModal from '@/components/ui/URLConfirmModal.vue'
-import StickyTitleBar from '@/components/ui/tutorial/StickyTitleBar.vue'
-import OnboardingScreen from '@/components/ui/tutorial/OnboardingScreen.vue'
-import { install_from_file } from './helpers/pack'
+import { type } from '@tauri-apps/api/os'
+import { appWindow } from '@tauri-apps/api/window'
+import { storeToRefs } from 'pinia'
 
 const themeStore = useTheming()
 const urlModal = ref(null)
+
 const isLoading = ref(true)
 
 const videoPlaying = ref(false)
@@ -53,10 +71,15 @@ const offline = ref(false)
 const showOnboarding = ref(false)
 const nativeDecorations = ref(false)
 
+const sidebarOpen = ref(false)
+
 const onboardingVideo = ref()
 
 const failureText = ref(null)
 const os = ref('')
+
+const instances = useInstances()
+const { instancesByPlayed } = storeToRefs(instances)
 
 defineExpose({
   initialize: async () => {
@@ -154,18 +177,12 @@ const handleClose = async () => {
   await TauriWindow.getCurrent().close()
 }
 
-const openSupport = async () => {
-  window.__TAURI_INVOKE__('tauri', {
-    __tauriModule: 'Shell',
-    message: {
-      cmd: 'open',
-      path: 'https://discord.gg/modrinth',
-    },
-  })
-}
+const openSupport = () => openExternal(window, 'https://support.modrinth.com/')
 
-TauriWindow.getCurrent().listen(TauriEvent.WINDOW_CLOSE_REQUESTED, async () => {
-  await handleClose()
+onMounted(() => {
+  return TauriWindow.getCurrent().listen(TauriEvent.WINDOW_CLOSE_REQUESTED, async () => {
+    await handleClose()
+  })
 })
 
 const router = useRouter()
@@ -186,47 +203,9 @@ watch(notificationsWrapper, () => {
   notifications.setNotifs(notificationsWrapper.value)
 })
 
-document.querySelector('body').addEventListener('click', function (e) {
-  let target = e.target
-  while (target != null) {
-    if (target.matches('a')) {
-      if (
-        target.href &&
-        ['http://', 'https://', 'mailto:', 'tel:'].some((v) => target.href.startsWith(v)) &&
-        !target.classList.contains('router-link-active') &&
-        !target.href.startsWith('http://localhost') &&
-        !target.href.startsWith('https://tauri.localhost')
-      ) {
-        window.__TAURI_INVOKE__('tauri', {
-          __tauriModule: 'Shell',
-          message: {
-            cmd: 'open',
-            path: target.href,
-          },
-        })
-      }
-      e.preventDefault()
-      break
-    }
-    target = target.parentElement
-  }
-})
+useDisableClicks(document, window)
 
-document.querySelector('body').addEventListener('auxclick', function (e) {
-  // disables middle click -> new tab
-  if (e.button === 1) {
-    e.preventDefault()
-    // instead do a left click
-    const event = new MouseEvent('click', {
-      view: window,
-      bubbles: true,
-      cancelable: true,
-    })
-    e.target.dispatchEvent(event)
-  }
-})
-
-const accounts = ref(null)
+// const accounts = ref(null)
 
 command_listener(async (e) => {
   if (e.event === 'RunMRPack') {
@@ -242,6 +221,10 @@ command_listener(async (e) => {
     urlModal.value.show(e)
   }
 })
+
+const toggleSidebar = () => {
+  sidebarOpen.value = !sidebarOpen.value
+}
 </script>
 
 <template>
@@ -288,8 +271,6 @@ command_listener(async (e) => {
 
         <div class="button-row push-right">
           <Button @click="showLauncherLogsFolder"><FileIcon />Open launcher logs</Button>
-
-          <Button @click="openSupport"><ChatIcon />Get support</Button>
         </div>
       </Card>
     </div>
@@ -297,14 +278,35 @@ command_listener(async (e) => {
   <SplashScreen v-else-if="!videoPlaying && isLoading" app-loading />
   <OnboardingScreen v-else-if="showOnboarding" :finish="() => (showOnboarding = false)" />
   <div v-else class="container">
-    <div class="nav-container">
-      <div class="nav-section">
-        <suspense>
+    <div
+      class="nav-container"
+      data-tauri-drag-region
+      :class="`${sidebarOpen ? 'nav-container__open' : ''}`"
+      :style="{
+        '--sidebar-label-opacity': sidebarOpen ? '1' : '0',
+      }"
+    >
+      <div class="pages-list">
+        <div class="square-collapsed-space">
+          <Button
+            transparent
+            icon-only
+            class="collapsed-button non-collapse"
+            @click="toggleSidebar"
+          >
+            <ArrowRightFromLineIcon v-if="!sidebarOpen" />
+            <ArrowLeftFromLineIcon v-else />
+          </Button>
+        </div>
+      </div>
+      <div class="pages-list">
+        <!-- <suspense>
           <AccountsCard ref="accounts" mode="small" />
-        </suspense>
+        </suspense> -->
         <div class="pages-list">
           <RouterLink v-tooltip="'Home'" to="/" class="btn icon-only collapsed-button">
             <HomeIcon />
+            <span class="collapsed-button__label">Home</span>
           </RouterLink>
           <RouterLink
             v-tooltip="'Browse'"
@@ -315,35 +317,73 @@ command_listener(async (e) => {
             }"
           >
             <SearchIcon />
+            <span class="collapsed-button__label">Browse</span>
           </RouterLink>
           <RouterLink v-tooltip="'Library'" to="/library" class="btn icon-only collapsed-button">
             <LibraryIcon />
+            <span class="collapsed-button__label">Library</span>
           </RouterLink>
-          <Suspense>
+          <suspense>
             <InstanceCreationModal ref="installationModal" />
-          </Suspense>
+          </suspense>
         </div>
+      </div>
+      <div class="divider">
+        <hr />
+      </div>
+      <div class="instances pages-list">
+        <RouterLink
+          v-for="instance in instancesByPlayed"
+          :key="instance.id"
+          v-tooltip="instance.metadata.name"
+          :to="`/instance/${encodeURIComponent(instance.path)}`"
+          class="btn icon-only collapsed-button"
+        >
+          <Avatar
+            class="collapsed-button__icon"
+            :src="iconPathAsUrl(instance.metadata?.icon)"
+            size="xs"
+          />
+          <span class="collapsed-button__label">{{ instance.metadata.name }}</span>
+        </RouterLink>
       </div>
       <div class="settings pages-list">
         <Button
+          v-tooltip="'Get Support'"
+          transparent
+          icon-only
+          class="page-item collapsed-button"
+          @click="openSupport"
+        >
+          <ChatIcon />
+          <span class="collapsed-button__label">Support</span>
+        </Button>
+        <RouterLink v-tooltip="'Settings'" to="/settings" class="btn icon-only collapsed-button">
+          <SettingsIcon />
+          <span class="collapsed-button__label">Settings</span>
+        </RouterLink>
+        <Button
           v-tooltip="'Create profile'"
-          class="sleek-primary collapsed-button"
+          class="page-item collapsed-button"
           icon-only
           :disabled="offline"
           @click="() => $refs.installationModal.show()"
         >
           <PlusIcon />
+          <span class="collapsed-button__label">Create profile</span>
         </Button>
-        <RouterLink v-tooltip="'Settings'" to="/settings" class="btn icon-only collapsed-button">
-          <SettingsIcon />
-        </RouterLink>
+        <AccountDropdown />
       </div>
     </div>
     <div class="view">
       <div class="appbar-row">
+        <!-- Top Bar -->
         <div data-tauri-drag-region class="appbar">
           <section class="navigation-controls">
-            <Breadcrumbs data-tauri-drag-region />
+            <router-link :to="'/'">
+              <TextLogo class="logo" :animate="false" />
+            </router-link>
+            <Breadcrumbs after-logo data-tauri-drag-region />
           </section>
           <section class="mod-stats">
             <Suspense>
@@ -375,7 +415,7 @@ command_listener(async (e) => {
       <div class="router-view">
         <ModrinthLoadingIndicator
           offset-height="var(--appbar-height)"
-          offset-width="var(--sidebar-width)"
+          :offset-width="sidebarOpen ? 'var(--sidebar-open-width)' : 'var(--sidebar-width)'"
         />
         <RouterView v-slot="{ Component }">
           <template v-if="Component">
@@ -397,9 +437,18 @@ command_listener(async (e) => {
   transition: all ease-in-out 0.1s;
 }
 
+.logo {
+  height: calc(var(--appbar-height) - 2.5rem);
+  width: auto;
+  min-height: 100%;
+  color: var(--color-contrast);
+}
+
 .navigation-controls {
-  flex-grow: 1;
-  width: min-content;
+  display: flex;
+  flex-direction: row;
+
+  align-items: center;
 }
 
 .appbar-row {
@@ -422,7 +471,7 @@ command_listener(async (e) => {
     background-color: var(--color-raised-bg);
     color: var(--color-base);
     border-radius: 0;
-    height: 3.25rem;
+    height: var(--appbar-height);
 
     &.close {
       &:hover,
@@ -441,8 +490,17 @@ command_listener(async (e) => {
 }
 
 .container {
-  --appbar-height: 3.25rem;
+  --appbar-height: 4.5rem;
+
+  --sidebar-gap: 0.35rem;
+
   --sidebar-width: 4.5rem;
+  --sidebar-open-width: 15rem;
+  --sidebar-padding: 0.75rem;
+
+  --sidebar-icon-size: 1.5rem;
+  --sidebar-button-size: calc(var(--sidebar-width) - calc(var(--sidebar-padding) * 2));
+  --sidebar-open-button-size: calc(var(--sidebar-open-width) - calc(var(--sidebar-padding) * 2));
 
   height: 100vh;
   display: flex;
@@ -456,11 +514,13 @@ command_listener(async (e) => {
     .appbar {
       display: flex;
       align-items: center;
+      justify-content: space-between;
+
       flex-grow: 1;
       background: var(--color-raised-bg);
       text-align: center;
       padding: var(--gap-md);
-      height: 3.25rem;
+      height: var(--appbar-height);
       gap: var(--gap-sm);
       //no select
       user-select: none;
@@ -469,7 +529,7 @@ command_listener(async (e) => {
 
     .router-view {
       width: 100%;
-      height: calc(100% - 3.125rem);
+      height: calc(100% - var(--appbar-height));
       overflow: auto;
       overflow-x: hidden;
       background-color: var(--color-bg);
@@ -488,7 +548,7 @@ command_listener(async (e) => {
   .appbar-failure {
     display: flex; /* Change to flex to align items horizontally */
     justify-content: flex-end; /* Align items to the right */
-    height: 3.25rem;
+    height: var(--appbar-height);
     //no select
     user-select: none;
     -webkit-user-select: none;
@@ -528,12 +588,75 @@ command_listener(async (e) => {
 .nav-container {
   display: flex;
   flex-direction: column;
+
+  padding-left: var(--sidebar-padding);
+  padding-right: var(--sidebar-padding);
+  padding-bottom: var(--sidebar-padding);
+
   align-items: center;
   justify-content: space-between;
+
   height: 100%;
+
   background-color: var(--color-raised-bg);
   box-shadow: var(--shadow-inset-sm), var(--shadow-floating);
-  padding: var(--gap-md);
+
+  transition: all ease-in-out 0.1s;
+
+  width: var(--sidebar-width);
+}
+
+.nav-container__open {
+  width: var(--sidebar-open-width);
+}
+
+.square-collapsed-space {
+  height: var(--appbar-height);
+  width: 100%;
+
+  user-select: none;
+  -webkit-user-select: none;
+
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+  .square-collapsed-space {
+    height: auto;
+    padding-bottom: var(--gap-md);
+  }
+}
+
+.divider {
+  height: auto;
+  width: 100%;
+
+  hr {
+    background-color: var(--color-button-bg);
+    border: none;
+    color: var(--color-button-bg);
+
+    height: 1px;
+    width: 100%;
+
+    margin: 0;
+  }
+
+  margin-top: var(--sidebar-gap);
+  // div should always have + 1 --sidebar-gap margin to the bottom to be equal
+  margin-bottom: calc(var(--sidebar-gap) * 2);
+
+  padding-left: var(--sidebar-padding);
+  padding-right: var(--sidebar-padding);
+}
+
+.instances {
+  flex: 1;
+
+  flex-flow: column wrap; // This hides any elements that aren't fully visible
+  overflow: hidden;
 }
 
 .pages-list {
@@ -541,9 +664,12 @@ command_listener(async (e) => {
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
-  width: 100%;
-  gap: 0.5rem;
 
+  width: 100%;
+
+  gap: var(--sidebar-gap);
+
+  .page-item,
   a {
     display: flex;
     align-items: center;
@@ -551,19 +677,20 @@ command_listener(async (e) => {
     background: inherit;
     transition: all ease-in-out 0.1s;
     color: var(--color-base);
-    box-shadow: none;
 
     &.router-link-active {
-      color: var(--color-contrast);
-      background: var(--color-button-bg);
-      box-shadow: var(--shadow-floating);
+      color: var(--color-brand);
+      background: var(--color-brand-highlight);
     }
 
     &:hover {
-      background-color: var(--color-button-bg);
       color: var(--color-contrast);
-      box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
-      text-decoration: none;
+      background: var(--color-button-bg);
+    }
+
+    &.router-link-active:hover {
+      color: var(--color-brand);
+      background: var(--color-brand-highlight);
     }
   }
 
@@ -573,78 +700,45 @@ command_listener(async (e) => {
   }
 }
 
-.collapsed-button {
-  height: 3rem !important;
-  width: 3rem !important;
-  padding: 0.75rem;
-  border-radius: var(--radius-md);
-  box-shadow: none;
-
-  svg {
-    width: 1.5rem !important;
-    height: 1.5rem !important;
-    max-width: 1.5rem !important;
-    max-height: 1.5rem !important;
-  }
-}
-
-.instance-list {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  width: 70%;
-  margin: 0.4rem;
-
-  p:nth-child(1) {
-    font-size: 0.6rem;
+:deep {
+  .non-collapse {
+    width: var(--sidebar-button-size) !important;
   }
 
-  & > p {
-    color: var(--color-base);
-    margin: 0.8rem 0;
-    font-size: 0.7rem;
-    line-height: 0.8125rem;
-    font-weight: 500;
-    text-transform: uppercase;
-  }
-}
-
-.user-section {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  width: 100%;
-  height: 4.375rem;
-
-  section {
-    display: flex;
-    flex-direction: column;
+  .collapsed-button {
     justify-content: flex-start;
-    text-align: left;
-    margin-left: 0.5rem;
-  }
 
-  .username {
-    margin-bottom: 0.3rem;
-    font-weight: 400;
-    line-height: 1.25rem;
-    color: var(--color-contrast);
-  }
+    // width: var(--sidebar-icon-size);
+    height: var(--sidebar-button-size);
+    width: 100%;
 
-  a {
-    font-weight: 400;
-    color: var(--color-secondary);
-  }
-}
+    flex-shrink: 0;
 
-.nav-section {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: center;
-  width: 100%;
-  height: 100%;
-  gap: 1rem;
+    padding: var(--sidebar-padding) !important;
+    border-radius: 99999px;
+    box-shadow: none;
+
+    white-space: nowrap;
+    overflow: hidden;
+
+    transition: all ease-in-out 0.1s;
+
+    .collapsed-button__icon,
+    svg {
+      width: var(--sidebar-icon-size) !important;
+      height: var(--sidebar-icon-size) !important;
+
+      flex-shrink: 0;
+
+      border-radius: var(--radius-xs);
+    }
+
+    .collapsed-button__label {
+      word-spacing: normal; // Why is this even needed?
+      opacity: var(--sidebar-label-opacity);
+      transition: all ease-in-out 0.1s;
+    }
+  }
 }
 
 .video {
