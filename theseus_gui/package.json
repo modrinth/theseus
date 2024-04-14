@@ -9,11 +9,12 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "lint:js": "eslint --ext .js,.vue,.ts,.jsx,.tsx,.html,.vue .",
-    "lint": "pnpm run lint:js && prettier --check .",
+    "lint": "npm run lint:js && prettier --check .",
     "fix": "eslint --fix --ext .js,.vue,.ts,.jsx,.tsx,.html,.vue . && prettier --write ."
   },
   "dependencies": {
     "@tauri-apps/api": "^1.5.3",
+    "@tauri-apps/plugin-window-state": "^2.0.0-beta.2",
     "dayjs": "^1.11.10",
     "floating-vue": "^5.2.2",
     "mixpanel-browser": "^2.49.0",
@@ -21,7 +22,6 @@
     "omorphia": "^0.4.41",
     "pinia": "^2.1.7",
     "qrcode.vue": "^3.4.1",
-    "tauri-plugin-window-state-api": "github:tauri-apps/tauri-plugin-window-state#v1",
     "vite-svg-loader": "^5.1.0",
     "vue": "^3.4.21",
     "vue-multiselect": "3.0.0-beta.3",
@@ -40,5 +40,5 @@
     "vite": "^5.2.8",
     "vite-plugin-eslint": "^1.8.1"
   },
-  "packageManager": "pnpm@8.6.0"
+  "packageManager": "npm@10.5.2"
 }

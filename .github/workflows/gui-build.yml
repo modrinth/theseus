@@ -14,29 +14,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
       - name: Use Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18.x
-      - name: Install pnpm via corepack
+          cache: "npm"
+      - name: Install package manager via corepack
         shell: bash
         run: |
           corepack enable
           corepack prepare --activate
-      - name: Get pnpm store directory
-        id: pnpm-cache
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
-      - name: Setup pnpm cache
-        uses: actions/cache@v3
-        with:
-          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
       - name: Install dependencies
-        run: pnpm install
+        run: npm ci
       - name: Run Lint
-        run: pnpm lint
+        run: npm run lint
       - name: Build
-        run: pnpm build
+        run: npm run build

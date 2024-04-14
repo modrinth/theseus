@@ -10,7 +10,7 @@ import {
   Notifications,
 } from 'omorphia'
 import { appWindow } from '@tauri-apps/api/window'
-import { saveWindowState, StateFlags } from 'tauri-plugin-window-state-api'
+import { saveWindowState, StateFlags } from '@tauri-apps/plugin-window-state'
 import Breadcrumbs from '@/components/ui/Breadcrumbs.vue'
 import FakeAppBar from '@/components/ui/tutorial/FakeAppBar.vue'
 import FakeAccountsCard from '@/components/ui/tutorial/FakeAccountsCard.vue'

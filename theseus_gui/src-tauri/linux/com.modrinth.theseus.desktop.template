@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=Modrinth App
+Comment=Modrinth's game launcher
+Exec={{exec}}
+Icon={{icon}}
+Type=Application
+Terminal=false
+StartupNotify=true
+Categories=Game;ActionGame;AdventureGame;Simulation;
+Keywords=game;minecraft;mc;
+StartupWMClass=ModrinthApp
+Version=1.4

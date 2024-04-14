@@ -33,7 +33,7 @@ import {
   mixpanel_opt_out_tracking,
   mixpanel_is_loaded,
 } from '@/helpers/mixpanel'
-import { saveWindowState, StateFlags } from 'tauri-plugin-window-state-api'
+import { saveWindowState, StateFlags } from '@tauri-apps/plugin-window-state'
 import { getVersion } from '@tauri-apps/api/app'
 import { window as TauriWindow } from '@tauri-apps/api'
 import { TauriEvent } from '@tauri-apps/api/event'

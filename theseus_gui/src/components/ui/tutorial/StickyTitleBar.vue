@@ -1,7 +1,7 @@
 <script setup>
 import { Button, XIcon } from 'omorphia'
 import { appWindow } from '@tauri-apps/api/window'
-import { saveWindowState, StateFlags } from 'tauri-plugin-window-state-api'
+import { saveWindowState, StateFlags } from '@tauri-apps/plugin-window-state'
 import { window } from '@tauri-apps/api'
 import { MinimizeIcon, MaximizeIcon } from '@/assets/icons'
 </script>

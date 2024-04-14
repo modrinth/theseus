@@ -1,7 +1,7 @@
 {
   "build": {
-    "beforeDevCommand": "pnpm dev",
-    "beforeBuildCommand": "pnpm build",
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
     "devPath": "http://localhost:1420",
     "distDir": "../dist",
     "withGlobalTauri": false
@@ -52,7 +52,8 @@
       "category": "Entertainment",
       "copyright": "",
       "deb": {
-        "depends": []
+        "depends": [],
+        "desktopTemplate": "linux/com.modrinth.theseus.desktop.template"
       },
       "externalBin": [],
       "icon": [
