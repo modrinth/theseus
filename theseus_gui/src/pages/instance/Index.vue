@@ -2,15 +2,21 @@
   <div class="instance-container">
     <div class="side-cards">
       <Card class="instance-card" @contextmenu.prevent.stop="handleRightClick">
-        <Avatar
-          size="lg"
-          :src="
-            !instance.metadata.icon ||
-            (instance.metadata.icon && instance.metadata.icon.startsWith('http'))
-              ? instance.metadata.icon
-              : convertFileSrc(instance.metadata?.icon)
-          "
-        />
+        <div class="instance-avatar-container" @click="setIcon">
+          <Avatar
+            size="lg"
+            class="instance-avatar"
+            :src="
+              !instance.metadata.icon ||
+              (instance.metadata.icon && instance.metadata.icon.startsWith('http'))
+                ? instance.metadata.icon
+                : convertFileSrc(instance.metadata?.icon)
+            "
+          />
+          <UploadIcon
+              class="hover-image-icon"
+          />
+        </div>
         <div class="instance-info">
           <h2 class="name">{{ instance.metadata.name }}</h2>
           <span class="metadata">
@@ -136,9 +142,9 @@ import {
   EyeIcon,
   XIcon,
   CheckCircleIcon,
-  UpdatedIcon,
+  UpdatedIcon, UploadIcon,
 } from 'omorphia'
-import { get, run } from '@/helpers/profile'
+import {edit_icon, get, run} from '@/helpers/profile'
 import {
   get_all_running_profile_paths,
   get_uuids_by_profile_path,
@@ -153,6 +159,7 @@ import ContextMenu from '@/components/ui/ContextMenu.vue'
 import { mixpanel_track } from '@/helpers/mixpanel'
 import { convertFileSrc } from '@tauri-apps/api/tauri'
 import { useFetch } from '@/helpers/fetch'
+import {open} from "@tauri-apps/api/dialog";
 
 const route = useRoute()
 
@@ -160,6 +167,7 @@ const router = useRouter()
 const breadcrumbs = useBreadcrumbs()
 
 const instance = ref(await get(route.params.id).catch(handleError))
+const icon = ref(instance.value.metadata.icon)
 
 breadcrumbs.setName(
   'Instance',
@@ -311,6 +319,25 @@ const unlistenOffline = await offline_listener((b) => {
   offline.value = b
 })
 
+async function setIcon() {
+  const value = await open({
+    multiple: false,
+    filters: [
+      {
+        name: 'Image',
+        extensions: ['png', 'jpeg', 'svg', 'webp', 'gif', 'jpg'],
+      },
+    ],
+  })
+
+  if (!value) return
+
+  icon.value = value
+  await edit_icon(instance.value.path, icon.value).catch(handleError)
+
+  mixpanel_track('InstanceSetIcon')
+}
+
 onUnmounted(() => {
   unlistenProcesses()
   unlistenProfiles()
@@ -319,6 +346,37 @@ onUnmounted(() => {
 </script>
 
 <style scoped lang="scss">
+.instance-avatar-container{
+  position: relative;
+  display: inline-block;
+  max-width: var(--size)!important;
+  max-height: var(--size)!important;
+  width: fit-content;
+  cursor: pointer;
+}
+
+.instance-avatar{
+  transition: filter 0.3s ease-in-out;
+}
+
+.hover-image-icon{
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+  width: auto;
+  height: 100%;
+  padding: 20px;
+}
+
+.instance-avatar-container:hover .instance-avatar{
+  filter: blur(5px);
+}
+.instance-avatar-container:hover .hover-image-icon{
+  opacity: 1;
+}
+
 .instance-card {
   display: flex;
   flex-direction: column;
