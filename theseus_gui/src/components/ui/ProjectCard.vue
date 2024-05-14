@@ -111,7 +111,7 @@ const install = async (e) => {
 
 <template>
   <div class="wrapper">
-    <Card class="project-card button-base" @click="router.push(`/project/${project.slug}`)">
+    <Card class="project-card button-base" @click="router.push(`/project/${project.slug}/`)">
       <div
         class="banner"
         :style="{
@@ -170,6 +170,7 @@ const install = async (e) => {
 .wrapper {
   position: relative;
   aspect-ratio: 1;
+  border-radius: var(--radius-lg);
 
   &:hover {
     .install:enabled {

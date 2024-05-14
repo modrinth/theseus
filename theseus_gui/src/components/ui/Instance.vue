@@ -247,6 +247,7 @@ onUnmounted(() => unlisten())
 <style lang="scss" scoped>
 .instance {
   position: relative;
+  border-radius: var(--radius-lg);
 
   &:hover {
     .cta {
