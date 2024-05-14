@@ -113,3 +113,9 @@ fabric.properties
 
 theseus.iml
 
+# nix build results
+result*
+repl-result-out*
+
+# nix dev shell
+.direnv

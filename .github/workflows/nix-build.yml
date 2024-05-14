@@ -1,0 +1,43 @@
+name: Nix
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  Check:
+    # multi platform checks aren't really needed here;
+    # this is mainly to debug evaluation errors
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v9
+
+      - name: Setup Nix Cache
+        uses: DeterminateSystems/magic-nix-cache-action@v2
+
+      - name: Run Check
+        run: nix flake check -L --accept-flake-config --show-trace
+
+  Build:
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v9
+
+      - name: Setup Nix Cache
+        uses: DeterminateSystems/magic-nix-cache-action@v2
+
+      - name: Run Build
+        run: nix build -L --accept-flake-config --fallback
