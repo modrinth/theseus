@@ -300,11 +300,11 @@ command_listener(async (e) => {
           <AccountsCard ref="accounts" mode="small" />
         </suspense>
         <div class="pages-list">
-          <RouterLink v-tooltip="'Home'" to="/" class="btn icon-only collapsed-button">
+          <RouterLink v-tooltip.left="'Home'" to="/" class="btn icon-only collapsed-button">
             <HomeIcon />
           </RouterLink>
           <RouterLink
-            v-tooltip="'Browse'"
+            v-tooltip.left="'Browse'"
             to="/browse/modpack"
             class="btn icon-only collapsed-button"
             :class="{
@@ -313,7 +313,7 @@ command_listener(async (e) => {
           >
             <SearchIcon />
           </RouterLink>
-          <RouterLink v-tooltip="'Library'" to="/library" class="btn icon-only collapsed-button">
+          <RouterLink v-tooltip.left="'Library'" to="/library" class="btn icon-only collapsed-button">
             <LibraryIcon />
           </RouterLink>
           <Suspense>
@@ -323,7 +323,7 @@ command_listener(async (e) => {
       </div>
       <div class="settings pages-list">
         <Button
-          v-tooltip="'Create profile'"
+          v-tooltip.left="'Create profile'"
           class="sleek-primary collapsed-button"
           icon-only
           :disabled="offline"
@@ -331,7 +331,7 @@ command_listener(async (e) => {
         >
           <PlusIcon />
         </Button>
-        <RouterLink v-tooltip="'Settings'" to="/settings" class="btn icon-only collapsed-button">
+        <RouterLink v-tooltip.left="'Settings'" to="/settings" class="btn icon-only collapsed-button">
           <SettingsIcon />
         </RouterLink>
       </div>
