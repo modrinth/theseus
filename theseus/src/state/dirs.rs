@@ -203,6 +203,11 @@ impl DirectoryInfo {
         self.caches_dir().join("metadata")
     }
 
+    #[inline]
+    pub fn caches_content_dir(&self) -> PathBuf {
+        self.caches_dir().join("content")
+    }
+
     /// Get path from environment variable
     #[inline]
     fn env_path(name: &str) -> Option<PathBuf> {
