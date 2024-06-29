@@ -11,7 +11,7 @@ import ModInstallModal from '@/components/ui/ModInstallModal.vue'
 
 const confirmModal = ref(null)
 const project = ref(null)
-const version = ref(null)
+const versions = ref(null)
 const categories = ref(null)
 const installing = ref(false)
 const modInstallModal = ref(null)
@@ -19,12 +19,12 @@ const modInstallModal = ref(null)
 defineExpose({
   async show(event) {
     if (event.event === 'InstallVersion') {
-      version.value = await useFetch(
+      versions.value[0] = await useFetch(
         `https://api.modrinth.com/v2/version/${encodeURIComponent(event.id)}`,
         'version',
       )
       project.value = await useFetch(
-        `https://api.modrinth.com/v2/project/${encodeURIComponent(version.value.project_id)}`,
+        `https://api.modrinth.com/v2/project/${encodeURIComponent(versions.value[0].project_id)}`,
         'project',
       )
     } else {
@@ -32,9 +32,9 @@ defineExpose({
         `https://api.modrinth.com/v2/project/${encodeURIComponent(event.id)}`,
         'project',
       )
-      version.value = await useFetch(
-        `https://api.modrinth.com/v2/version/${encodeURIComponent(project.value.versions[0])}`,
-        'version',
+      versions.value = await useFetch(
+        `https://api.modrinth.com/v2/project/${encodeURIComponent(event.id)}/version`,
+        'project versions',
       )
     }
     categories.value = (await get_categories().catch(handleError)).filter(
@@ -53,21 +53,21 @@ async function install() {
   if (project.value.project_type === 'modpack') {
     await packInstall(
       project.value.id,
-      version.value.id,
+      versions.value[0].id,
       project.value.title,
       project.value.icon_url,
     ).catch(handleError)
 
     mixpanel.track('PackInstall', {
       id: project.value.id,
-      version_id: version.value.id,
+      version_id: versions.value[0].id,
       title: project.value.title,
       source: 'ProjectPage',
     })
   } else {
     modInstallModal.value.show(
       project.value.id,
-      [version.value],
+      versions.value,
       project.value.title,
       project.value.project_type,
     )
@@ -87,7 +87,7 @@ async function install() {
       <div class="button-row">
         <div class="markdown-body">
           <p>
-            Installing <code>{{ version.id }}</code> from Modrinth
+            Installing <code>{{ project.id }}</code> from Modrinth
           </p>
         </div>
         <div class="button-group">
