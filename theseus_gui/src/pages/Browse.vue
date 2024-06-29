@@ -897,7 +897,6 @@ onUnmounted(() => unlistenOffline())
 
 .search-container {
   display: flex;
-  height: 100%; /* takes up only the necessary height */
   overflow-y: auto;
   scroll-behavior: smooth;
 
