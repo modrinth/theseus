@@ -76,14 +76,14 @@
         </div>
       </RecycleScroller>
     </div>
-    <ShareModal
-      ref="shareModal"
-      header="Share Log"
-      share-title="Instance Log"
-      share-text="Check out this log from an instance on the Modrinth App"
-      link
-    />
   </Card>
+  <ShareModal
+    ref="shareModal"
+    header="Share Log"
+    share-title="Instance Log"
+    share-text="Check out this log from an instance on the Modrinth App"
+    link
+  />
 </template>
 
 <script setup>
@@ -225,7 +225,7 @@ async function getLiveStdLog() {
     } else {
       const logCursor = await get_latest_log_cursor(
         props.instance.path,
-        currentLiveLogCursor.value
+        currentLiveLogCursor.value,
       ).catch(handleError)
       if (logCursor.new_file) {
         currentLiveLog.value = ''
@@ -247,7 +247,7 @@ async function getLogs() {
         log.filename !== 'latest_stdout.log' &&
         log.filename !== 'latest_stdout' &&
         log.stdout !== '' &&
-        (log.filename.includes('.log') || log.filename.endsWith('.txt'))
+        (log.filename.includes('.log') || log.filename.endsWith('.txt')),
     )
     .map((log) => {
       log.name = log.filename || 'Unknown'
@@ -291,7 +291,7 @@ watch(selectedLogIndex, async (newIndex) => {
     logs.value[newIndex].stdout = await get_output_by_filename(
       props.instance.path,
       logs.value[newIndex].log_type,
-      logs.value[newIndex].filename
+      logs.value[newIndex].filename,
     ).catch(handleError)
   }
 })
@@ -309,7 +309,7 @@ const deleteLog = async () => {
     await delete_logs_by_filename(
       props.instance.path,
       logs.value[deleteIndex].log_type,
-      logs.value[deleteIndex].filename
+      logs.value[deleteIndex].filename,
     ).catch(handleError)
     await setLogs()
   }
@@ -469,7 +469,8 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  height: calc(100vh - 11rem);
+  /*                   gaps   appbar    promotion*/
+  height: calc(100vh - 3rem - 3.25rem - 47px);
 }
 
 .button-row {
