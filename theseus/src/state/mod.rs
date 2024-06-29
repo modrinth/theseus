@@ -157,8 +157,12 @@ impl State {
 
         let is_offline = !fetch::check_internet(3).await;
 
-        let metadata_fut =
-            Metadata::init(&directories, !is_offline, &io_semaphore);
+        let metadata_fut = Metadata::init(
+            &directories,
+            !is_offline,
+            &io_semaphore,
+            &fetch_semaphore,
+        );
         let profiles_fut = Profiles::init(&directories, &mut file_watcher);
         let tags_fut = Tags::init(
             &directories,

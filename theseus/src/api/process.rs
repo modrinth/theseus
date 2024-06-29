@@ -18,9 +18,7 @@ pub async fn has_finished_by_uuid(uuid: Uuid) -> crate::Result<bool> {
 
 // Gets the exit status of a child process stored in the state by UUID
 #[tracing::instrument]
-pub async fn get_exit_status_by_uuid(
-    uuid: Uuid,
-) -> crate::Result<Option<i32>> {
+pub async fn get_exit_status_by_uuid(uuid: Uuid) -> crate::Result<Option<i32>> {
     let state = State::get().await?;
     let children = state.children.read().await;
     children.exit_status(uuid).await

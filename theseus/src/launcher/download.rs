@@ -19,6 +19,7 @@ use daedalus::{
     modded::LoaderVersion,
 };
 use futures::prelude::*;
+use reqwest::Method;
 use tokio::sync::OnceCell;
 
 #[tracing::instrument(skip(st, version))]
@@ -82,10 +83,27 @@ pub async fn download_version_info(
             .and_then(|ref it| Ok(serde_json::from_slice(it)?))
     } else {
         tracing::info!("Downloading version info for version {}", &version.id);
-        let mut info = d::minecraft::fetch_version_info(version).await?;
+        let mut info = fetch_json(
+            Method::GET,
+            &version.url,
+            None,
+            None,
+            &st.fetch_semaphore,
+            &CredentialsStore(None),
+        )
+        .await?;
 
         if let Some(loader) = loader {
-            let partial = d::modded::fetch_partial_version(&loader.url).await?;
+            let partial: d::modded::PartialVersionInfo = fetch_json(
+                Method::GET,
+                &loader.url,
+                None,
+                None,
+                &st.fetch_semaphore,
+                &CredentialsStore(None),
+            )
+            .await?;
+
             info = d::modded::merge_partial_version(partial, info);
         }
         info.id = version_id.clone();
@@ -167,7 +185,15 @@ pub async fn download_assets_index(
             .await
             .and_then(|ref it| Ok(serde_json::from_slice(it)?))
     } else {
-        let index = d::minecraft::fetch_assets_index(version).await?;
+        let index = fetch_json(
+            Method::GET,
+            &version.asset_index.url,
+            None,
+            None,
+            &st.fetch_semaphore,
+            &CredentialsStore(None),
+        )
+        .await?;
         write(&path, &serde_json::to_vec(&index)?, &st.io_semaphore).await?;
         tracing::info!("Fetched assets index");
         Ok(index)
@@ -272,6 +298,11 @@ pub async fn download_libraries(
                         tracing::trace!("Skipped library {}", &library.name);
                         return Ok(());
                     }
+                }
+
+                if !library.downloadable {
+                    tracing::trace!("Skipped non-downloadable library {}", &library.name);
+                    return Ok(());
                 }
 
                 tokio::try_join! {

@@ -1,9 +1,9 @@
 use crate::api::Result;
+use theseus::logs::LogType;
 use theseus::{
     logs::{self, CensoredString, LatestLogCursor, Logs},
     prelude::ProfilePathId,
 };
-use theseus::logs::LogType;
 
 /*
 A log is a struct containing the filename string, stdout, and stderr, as follows:
@@ -67,7 +67,10 @@ pub async fn logs_get_output_by_filename(
         .into());
     };
 
-    Ok(logs::get_output_by_filename(&profile_path, log_type, &filename).await?)
+    Ok(
+        logs::get_output_by_filename(&profile_path, log_type, &filename)
+            .await?,
+    )
 }
 
 /// Delete all logs for a profile by profile id
@@ -83,7 +86,10 @@ pub async fn logs_delete_logs_by_filename(
     log_type: LogType,
     filename: String,
 ) -> Result<()> {
-    Ok(logs::delete_logs_by_filename(profile_path, log_type, &filename).await?)
+    Ok(
+        logs::delete_logs_by_filename(profile_path, log_type, &filename)
+            .await?,
+    )
 }
 
 /// Get live log from a cursor

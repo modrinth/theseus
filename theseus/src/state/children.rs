@@ -3,6 +3,7 @@ use chrono::{DateTime, Utc};
 use serde::Deserialize;
 use serde::Serialize;
 use std::{collections::HashMap, sync::Arc};
+use std::process::Stdio;
 use tokio::process::Child;
 use tokio::process::Command;
 use tokio::sync::RwLock;
@@ -278,7 +279,10 @@ impl Children {
         censor_strings: HashMap<String, String>,
     ) -> crate::Result<Arc<RwLock<MinecraftChild>>> {
         // Takes the first element of the commands vector and spawns it
-        let mc_proc = mc_command.spawn().map_err(IOError::from)?;
+        let mc_proc = mc_command.stdout(Stdio::inherit())
+            .stderr(Stdio::inherit())
+
+            .spawn().map_err(IOError::from)?;
 
         let child = ChildType::TokioChild(mc_proc);
 

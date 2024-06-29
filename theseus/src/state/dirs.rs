@@ -165,7 +165,7 @@ impl DirectoryInfo {
     ) -> crate::Result<PathBuf> {
         Ok(profile_id.get_full_path().await?.join("logs"))
     }
-    
+
     /// Gets the crash reports dir for a given profile
     #[inline]
     pub async fn crash_reports_dir(

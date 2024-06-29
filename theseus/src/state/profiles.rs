@@ -12,7 +12,6 @@ use crate::util::fetch::{
 use crate::util::io::{self, IOError};
 use crate::State;
 use chrono::{DateTime, Utc};
-use daedalus::get_hash;
 use daedalus::modded::LoaderVersion;
 use futures::prelude::*;
 use notify::{RecommendedWatcher, RecursiveMode};
@@ -611,6 +610,7 @@ impl Profile {
                 || archive.by_name("quilt.mod.json").is_ok()
                 || archive.by_name("META-INF/mods.toml").is_ok()
                 || archive.by_name("mcmod.info").is_ok()
+                || archive.by_name("META-INF/neoforge.mods.toml").is_ok()
             {
                 ProjectType::Mod
             } else if archive.by_name("pack.mcmeta").is_ok() {
@@ -638,7 +638,7 @@ impl Profile {
         let project_path_id = ProjectPathId::new(&relative_name);
         write(&file_path, &bytes, &state.io_semaphore).await?;
 
-        let hash = get_hash(bytes).await?;
+        let hash = crate::state::fetch::sha1_async(bytes).await?;
         {
             let mut profiles = state.profiles.write().await;
 

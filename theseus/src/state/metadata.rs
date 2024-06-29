@@ -1,16 +1,18 @@
 //! Theseus metadata
 use crate::data::DirectoryInfo;
-use crate::util::fetch::{read_json, write, IoSemaphore};
+use crate::state::CredentialsStore;
+use crate::util::fetch::{
+    fetch_json, read_json, write, FetchSemaphore, IoSemaphore,
+};
 use crate::State;
 use daedalus::{
-    minecraft::{fetch_version_manifest, VersionManifest as MinecraftManifest},
-    modded::{
-        fetch_manifest as fetch_loader_manifest, Manifest as LoaderManifest,
-    },
+    minecraft::VersionManifest as MinecraftManifest,
+    modded::Manifest as LoaderManifest,
 };
+use reqwest::Method;
 use serde::{Deserialize, Serialize};
 
-const METADATA_URL: &str = "https://meta.modrinth.com";
+const METADATA_URL: &str = "https:/launcher-meta.modrinth.com";
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Metadata {
@@ -26,27 +28,27 @@ impl Metadata {
         format!("{METADATA_URL}/{name}/v0/manifest.json")
     }
 
-    pub async fn fetch() -> crate::Result<Self> {
+    pub async fn fetch(semaphore: &FetchSemaphore) -> crate::Result<Self> {
         let (minecraft, forge, fabric, quilt, neoforge) = tokio::try_join! {
             async {
                 let url = Self::get_manifest("minecraft");
-                fetch_version_manifest(Some(&url)).await
+                fetch_json(Method::GET, &url, None, None, semaphore, &CredentialsStore(None)).await
             },
             async {
                 let url = Self::get_manifest("forge");
-                fetch_loader_manifest(&url).await
+                fetch_json(Method::GET, &url, None, None, semaphore, &CredentialsStore(None)).await
             },
             async {
                 let url = Self::get_manifest("fabric");
-                fetch_loader_manifest(&url).await
+                fetch_json(Method::GET, &url, None, None, semaphore, &CredentialsStore(None)).await
             },
             async {
                 let url = Self::get_manifest("quilt");
-                fetch_loader_manifest(&url).await
+                fetch_json(Method::GET, &url, None, None, semaphore, &CredentialsStore(None)).await
             },
             async {
                 let url = Self::get_manifest("neo");
-                fetch_loader_manifest(&url).await
+                fetch_json(Method::GET, &url, None, None, semaphore, &CredentialsStore(None)).await
             }
         }?;
 
@@ -66,6 +68,7 @@ impl Metadata {
         dirs: &DirectoryInfo,
         fetch_online: bool,
         io_semaphore: &IoSemaphore,
+        fetch_semaphore: &FetchSemaphore,
     ) -> crate::Result<Self> {
         let mut metadata = None;
         let metadata_path = dirs.caches_meta_dir().await.join("metadata.json");
@@ -78,7 +81,7 @@ impl Metadata {
             metadata = Some(metadata_json);
         } else if fetch_online {
             let res = async {
-                let metadata_fetch = Self::fetch().await?;
+                let metadata_fetch = Self::fetch(fetch_semaphore).await?;
 
                 write(
                     &metadata_path,
@@ -131,8 +134,9 @@ impl Metadata {
 
     pub async fn update() {
         let res = async {
-            let metadata_fetch = Metadata::fetch().await?;
             let state = State::get().await?;
+            let metadata_fetch =
+                Metadata::fetch(&state.fetch_semaphore).await?;
 
             let metadata_path = state
                 .directories

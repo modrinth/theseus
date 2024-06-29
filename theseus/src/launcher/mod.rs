@@ -15,6 +15,7 @@ use daedalus as d;
 use daedalus::minecraft::{RuleAction, VersionInfo};
 use st::Profile;
 use std::collections::HashMap;
+use std::process::Stdio;
 use std::sync::Arc;
 use tokio::process::Command;
 use uuid::Uuid;
@@ -326,6 +327,8 @@ pub async fn install_minecraft(
                         &processor.args,
                         data,
                     )?)
+                    .stdout(Stdio::inherit())
+                    .stderr(Stdio::inherit())
                     .output()
                     .await
                     .map_err(|e| IOError::with_path(e, &java_version.path))
@@ -334,6 +337,9 @@ pub async fn install_minecraft(
                             "Error running processor: {err}",
                         ))
                     })?;
+
+                println!("processor stdout: {}", String::from_utf8_lossy(&child.stdout));
+                println!("processor stderr: {}", String::from_utf8_lossy(&child.stderr));
 
                 if !child.status.success() {
                     return Err(crate::ErrorKind::LauncherError(format!(
