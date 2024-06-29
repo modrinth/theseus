@@ -353,9 +353,8 @@ Button {
     background: transparent;
   }
 
-  .card {
+  :deep(.card) {
     min-height: unset;
-    margin-bottom: 0;
   }
 }
 
