@@ -123,10 +123,17 @@
         class="project__icon"
       />
       <div class="input-stack">
-        <button id="instance-icon" class="btn" @click="setIcon">
+        <button id="instance-icon" class="btn" @click="setIconFromDialog">
           <UploadIcon />
-          Select icon
+          Select icon from file
         </button>
+        <SearchDropdown
+          v-model="modIconsSearch"
+          class="animated-dropdown"
+          placeholder="Select icon from mod"
+          :options="filteredModIcons"
+          @on-selected="setIconMod"
+        />
         <button
           :disabled="!(!icon || (icon && icon.startsWith('http')) ? icon : convertFileSrc(icon))"
           class="btn"
@@ -530,6 +537,7 @@ import {
   ClipboardCopyIcon,
   Button,
   Toggle,
+  SearchDropdown,
 } from 'omorphia'
 import { SwapIcon } from '@/assets/icons'
 
@@ -586,8 +594,45 @@ const props = defineProps({
 const themeStore = useTheming()
 
 const title = ref(props.instance.metadata.name)
-const icon = ref(props.instance.metadata.icon)
+const icon = ref(
+  props.instance.metadata.icon ? props.instance.metadata.icon : props.instance.metadata.icon_url,
+)
 const groups = ref(props.instance.metadata.groups)
+
+console.log(icon.value)
+
+const modIconsSearch = ref('')
+const modIcons = ref([])
+
+const filteredModIcons = computed(() => {
+  return modIcons.value.filter((entry) =>
+    entry.title.toLowerCase().includes(modIconsSearch.value.toLowerCase()),
+  )
+})
+
+const initModIcons = (initInstance) => {
+  modIcons.value = []
+
+  if (!initInstance || !initInstance.projects) return
+
+  for (const project of Object.values(initInstance.projects)) {
+    if (project.metadata.type === 'modrinth' && !props.offline) {
+      modIcons.value.push({
+        title: project.metadata.project.title,
+        icon: project.metadata.project.icon_url,
+        rawIcon: project.metadata.project.icon_url,
+      })
+    } else if (project.metadata.type === 'inferred') {
+      modIcons.value.push({
+        title: project.metadata.title ?? project.file_name,
+        icon: project.metadata.icon ? convertFileSrc(project.metadata.icon) : null,
+        rawIcon: project.metadata.icon,
+      })
+    }
+  }
+}
+
+initModIcons(props.instance)
 
 const modpackVersionModal = ref(null)
 
@@ -606,7 +651,12 @@ async function resetIcon() {
   mixpanel_track('InstanceRemoveIcon')
 }
 
-async function setIcon() {
+async function setIconMod(mod) {
+  if (!mod) return
+  await setIcon(mod.rawIcon)
+}
+
+async function setIconFromDialog() {
   const value = await open({
     multiple: false,
     filters: [
@@ -619,7 +669,11 @@ async function setIcon() {
 
   if (!value) return
 
-  icon.value = value
+  await setIcon(value)
+}
+
+async function setIcon(path) {
+  icon.value = path
   await edit_icon(props.instance.path, icon.value).catch(handleError)
 
   mixpanel_track('InstanceSetIcon')
@@ -817,6 +871,7 @@ async function repairModpack() {
 }
 
 const removing = ref(false)
+
 async function removeProfile() {
   removing.value = true
   await remove(props.instance.path).catch(handleError)
@@ -918,6 +973,7 @@ const isChanged = computed(() => {
 watch(loader, () => (loaderVersionIndex.value = 0))
 
 const editing = ref(false)
+
 async function saveGvLoaderEdits() {
   editing.value = true
 
@@ -1012,6 +1068,13 @@ async function saveGvLoaderEdits() {
   .button-group {
     margin-left: auto;
     margin-top: 1.5rem;
+  }
+}
+
+//todo - can probably be removed once omorphia is updated - fix for "select icon from mod"
+.animated-dropdown {
+  :deep(input) {
+    flex: 1;
   }
 }
 </style>
