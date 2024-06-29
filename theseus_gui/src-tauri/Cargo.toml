@@ -45,6 +45,7 @@ sentry-rust-minidump = "0.7.0"
 
 lazy_static = "1"
 once_cell = "1"
+native-dialog = "0.7.0"
 
 [target.'cfg(not(target_os = "linux"))'.dependencies]
 window-shadows = "0.2.1"

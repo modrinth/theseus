@@ -3,6 +3,7 @@
     windows_subsystem = "windows"
 )]
 
+use native_dialog::{MessageDialog, MessageType};
 use tauri::Manager;
 use theseus::prelude::*;
 
@@ -111,8 +112,15 @@ fn main() {
                 .unwrap();
             }
 
-            // Show app now that we are setup
-            win.show().unwrap();
+            if let Err(e) = win.show() {
+                MessageDialog::new()
+                    .set_type(MessageType::Error)
+                    .set_title("Initialization error")
+                    .set_text(&format!("Cannot display application window due to an error:\n{}", e.to_string()))
+                    .show_alert()
+                    .unwrap();
+                panic!("cannot display application window")
+            }
 
             Ok(())
         });
@@ -149,7 +157,28 @@ fn main() {
             api::auth::auth_login,
         ]);
 
-    builder
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+    if let Err(e) = builder.run(tauri::generate_context!()) {
+        #[cfg(target_os = "windows")] {
+            // tauri doesn't expose runtime errors, so matching a string representation seems like the only solution
+            if format!("{:?}", e).contains("Runtime(CreateWebview(WebView2Error(WindowsError") {
+                MessageDialog::new()
+                .set_type(MessageType::Error)
+                .set_title("Initialization error")
+                .set_text("Your Microsoft Edge WebView2 installation is corrupt.\n\nMicrosoft Edge WebView2 is required to run Modrinth App.\n\nLearn how to repair it at https://docs.modrinth.com/faq/app/webview2")
+                .show_alert()
+                .unwrap();
+    
+                panic!("webview2 initialization failed")
+            }
+        }
+
+        MessageDialog::new()
+            .set_type(MessageType::Error)
+            .set_title("Initialization error")
+            .set_text(&format!("Cannot initialize application due to an error:\n{:?}", e))
+            .show_alert()
+            .unwrap();
+
+        Err(e).expect("error while running tauri application")
+    }
 }
