@@ -968,16 +968,22 @@ pub async fn create_mrpack_json(
             // Only Modrinth projects have a modrinth metadata field for the modrinth.json
             Some(Ok(match project.metadata {
                 crate::prelude::ProjectMetadata::Modrinth {
+                    ref project,
                     ref version,
                     ..
                 } => {
                     let mut env = HashMap::new();
-                    // TODO: envtype should be a controllable option (in general or at least .mrpack exporting)
-                    // For now, assume required.
-                    // env.insert(EnvType::Client, project.client_side.clone());
-                    // env.insert(EnvType::Server, project.server_side.clone());
+                    // Mods that only run on the logical server often mark the client as
+                    // unsupported, even if they still work in single player (as most do).
+                    // We therefore always mark the client as required.
+                    // TODO: This should be changeable when exporting the profile
                     env.insert(EnvType::Client, SideType::Required);
-                    env.insert(EnvType::Server, SideType::Required);
+                    // Mods that do not support servers have no reason to run on servers
+                    // and often cause crashes.
+                    env.insert(EnvType::Server, match project.server_side {
+                        SideType::Unsupported => SideType::Unsupported,
+                        _ => SideType::Required,
+                    });
 
                     let primary_file = if let Some(primary_file) =
                         version.files.first()
