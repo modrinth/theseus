@@ -29,6 +29,12 @@ fn is_dev() -> bool {
     cfg!(debug_assertions)
 }
 
+/// Show Main Window - called once after first frontend rendered
+#[tauri::command]
+fn show_window(window: tauri::Window) {
+    window.get_window("main").unwrap().show().unwrap();
+}
+
 // Toggles decorations
 #[tauri::command]
 async fn toggle_decorations(b: bool, window: tauri::Window) -> api::Result<()> {
@@ -92,6 +98,8 @@ fn main() {
             }
 
             let win = app.get_window("main").unwrap();
+            win.hide().unwrap();
+
             #[cfg(not(target_os = "linux"))]
             {
                 use window_shadows::set_shadow;
@@ -110,9 +118,6 @@ fn main() {
                 })
                 .unwrap();
             }
-
-            // Show app now that we are setup
-            win.show().unwrap();
 
             Ok(())
         });
@@ -146,6 +151,7 @@ fn main() {
             initialize_state,
             is_dev,
             toggle_decorations,
+            show_window,
             api::auth::auth_login,
         ]);
 

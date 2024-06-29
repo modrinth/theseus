@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { RouterView, RouterLink, useRouter, useRoute } from 'vue-router'
 import {
   HomeIcon,
@@ -27,7 +27,7 @@ import { offline_listener, command_listener, warning_listener } from '@/helpers/
 import { MinimizeIcon, MaximizeIcon, ChatIcon } from '@/assets/icons'
 import { type } from '@tauri-apps/api/os'
 import { appWindow } from '@tauri-apps/api/window'
-import { isDev, getOS, isOffline, showLauncherLogsFolder } from '@/helpers/utils.js'
+import { isDev, getOS, isOffline, showLauncherLogsFolder, showMainWindow } from '@/helpers/utils.js'
 import {
   mixpanel_track,
   mixpanel_init,
@@ -60,7 +60,6 @@ const os = ref('')
 
 defineExpose({
   initialize: async () => {
-    isLoading.value = false
     const {
       native_decorations,
       theme,
@@ -112,12 +111,18 @@ defineExpose({
     if (showOnboarding.value) {
       onboardingVideo.value.play()
     }
+
+    isLoading.value = false
   },
   failure: async (e) => {
     isLoading.value = false
     failureText.value = e
     os.value = await getOS()
   },
+})
+
+onMounted(async () => {
+  await showMainWindow()
 })
 
 const confirmClose = async () => {
