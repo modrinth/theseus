@@ -117,24 +117,11 @@ if (route.query.e) {
   selectedEnvironments.value = getArrayOrString(route.query.e)
 }
 if (route.query.s) {
-  sortType.value.name = route.query.s
-
-  switch (sortType.value.name) {
-    case 'relevance':
-      sortType.value.display = 'Relevance'
+  for (let st of sortTypes) {
+    if (st.name === route.query.s) {
+      sortType.value = st
       break
-    case 'downloads':
-      sortType.value.display = 'Downloads'
-      break
-    case 'newest':
-      sortType.value.display = 'Recently published'
-      break
-    case 'updated':
-      sortType.value.display = 'Recently updated'
-      break
-    case 'follows':
-      sortType.value.display = 'Follow count'
-      break
+    }
   }
 }
 
@@ -474,7 +461,7 @@ watch(
     projectType.value = newType
     breadcrumbs.setContext({ name: 'Browse', link: `/browse/${projectType.value}` })
 
-    sortType.value = { display: 'Relevance', name: 'relevance' }
+    sortType.value = sortTypes[0]
     query.value = ''
 
     loading.value = true
