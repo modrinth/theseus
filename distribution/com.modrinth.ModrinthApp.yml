@@ -1,0 +1,81 @@
+id: com.modrinth.ModrinthApp
+runtime: org.gnome.Platform
+runtime-version: "42"
+sdk: org.gnome.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.rust-stable
+  - org.freedesktop.Sdk.Extension.node18
+
+command: modrinth-app
+finish-args: 
+  - --filesystem=xdg-run/app/com.discordapp.Discord:create # allows for discord rpc
+  - --device=all
+  - --share=ipc
+  - --share=network
+  - --socket=pulseaudio
+  - --socket=x11
+  - --socket=wayland
+
+build-options:
+  append-path: "/usr/lib/sdk/rust-stable/bin:/usr/lib/sdk/node18/bin"
+
+  build-args:
+    - --share=network
+
+modules:
+  - shared-modules/libappindicator/libappindicator-gtk3-12.10.json
+
+  # for some controller mods (see https://github.com/isXander/Controlify/issues/31)
+  - shared-modules/libusb/libusb.json
+
+  - name: flite
+    buildsystem: autotools
+    config-opts:
+      - --enable-shared
+      - --with-audio=pulseaudio
+    sources:
+      - type: archive
+        url: https://github.com/festvox/flite/archive/refs/tags/v2.2.tar.gz
+        sha512: 1ca2f4145651490ef8405fdb830a3b42e885020a7603d965f6a5581b01bed41047d396b38c2ceab138fc0b28d28078db17acd2b5a84c6444cb99d65c581afa72
+    cleanup:
+      - '/lib/libflite*.a'
+
+  - name: modrinth-app
+    buildsystem: simple
+    build-options:
+      append-path: /run/build/modrinth-app/pnpm
+    build-commands:
+      - pnpm config set store-dir .pnpm-store
+      - cd theseus/theseus_gui && pnpm install
+      - cd theseus/theseus_gui && pnpm build
+      - cd theseus && cargo fetch --locked --manifest-path Cargo.toml
+      - cd theseus && cargo build --locked --release
+      
+      - install -Dm755 theseus/target/release/theseus_gui /app/bin/modrinth-app
+
+      - mkdir -p /app/share/{icons/hicolor/256x256/apps,applications,metainfo}
+
+      - cp theseus/theseus_gui/src-tauri/icons/Square284x284Logo.png /app/share/icons/hicolor/256x256/apps/com.modrinth.ModrinthApp.png 
+      - install -Dm644 com.modrinth.ModrinthApp.metainfo.xml /app/share/metainfo/com.modrinth.ModrinthApp.metainfo.xml
+      - install -Dm644 com.modrinth.ModrinthApp.desktop /app/share/applications/com.modrinth.ModrinthApp.desktop
+
+    sources:
+      - type: archive
+        url: https://registry.npmjs.org/@pnpm/linux-x64/-/linux-x64-7.33.5.tgz
+        sha512: d594a9e505b33a5a7b8684645ca762a2c24c6b3e1e477afe8f412d0dd5c8b1b9b9e636e3a19ae0ceeed603d8507f84b081ed12b283ac543bc4bf26d591cab4c5
+        dest: pnpm
+
+      - type: shell
+        commands:
+          - chmod +x pnpm
+        dest: pnpm
+
+      - type: dir
+        path: ../
+        dest: theseus
+
+      - type: file
+        path: com.modrinth.ModrinthApp.metainfo.xml
+
+      - type: file
+        path: com.modrinth.ModrinthApp.desktop

@@ -1,0 +1,25 @@
+name: Flatpak Build
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: bilelmoussaoui/flatpak-github-actions:gnome-42
+      options: --privileged
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Build Flatpak bundle
+        uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+          bundle: modrinthApp.flatpak
+          manifest-path: distribution/com.modrinth.ModrinthApp.yml
+          cache-key: flatpak-builder-${{ github.ref }}
